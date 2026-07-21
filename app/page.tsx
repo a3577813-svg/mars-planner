@@ -1,75 +1,55 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import {FormEvent,useEffect,useMemo,useState} from "react";
+import {templates,templateForLevel} from "./plannerData";
 
-type Role = "student" | "teacher";
-type PageData = Record<string, string | boolean | number>;
-type PlannerStore = Record<number, PageData>;
-type Section = { title: string; fields: string[] };
+type Role="student"|"teacher"|"admin";
+type Account={login:string;password:string;name:string;role:Role;level?:number};
+type PageData=Record<string,string>;
+type PlannerStore=Record<string,Record<number,PageData>>;
+type Profile={name:string;level:number;year:string};
 
-const titles: Record<number, string> = {
-  1:"Моя экспедиция к идее",2:"Сканирование локации",3:"Моё состояние и впечатления",4:"Путевой лист: Никола-Ленивец",5:"Рефлексия экспедиции",
-  6:"Штаб-квартира проекта",7:"Карта знаний и дефицитов",8:"Подготовка пилота",9:"Проект в работе",10:"Финальный план МАРСфеста",
-  11:"Разбор полётов: Абхазия",12:"Абхазия: яркие открытия",13:"Финальный план пилота",14:"Команда пилота",15:"От МАРСфеста до Partners Day",
-  16:"Питч перед партнёрами",17:"Подготовка к вопросам",18:"Карта состояний проектного цикла",19:"Команда и открытия",20:"Итоги проектного цикла",
-  21:"Новый маршрут проекта",22:"Штаб-квартира реализации",23:"Дорожная карта",24:"Риски и план Б",25:"Ресурсы и партнёры",
-  26:"Моя проектная вселенная",27:"Что проект говорит обо мне",28:"Моё видео и цитата: разбор",29:"Моё видео и цитата: сценарий",30:"Опыт, который сделал меня сильнее",
-  31:"Моя минута силы: точка силы",32:"Моя минута силы: точка роста",33:"Моя история самопрезентации",34:"Моё резюме: профиль",35:"Моё резюме: опыт и навыки",
-  36:"Моё мотивационное письмо",37:"Сопроводительное письмо",38:"Финальная сборка портфолио"
-};
+const demoAccounts:Account[]=[
+ {login:"student7",password:"1234",name:"Алексей Мартынов",role:"student",level:7},
+ {login:"student8",password:"1234",name:"Мария Соколова",role:"student",level:8},
+ {login:"teacher",password:"1234",name:"Педагог МАРС",role:"teacher"},
+ {login:"admin",password:"1234",name:"Администратор МАРС",role:"admin"}
+];
+const demoProfiles:Record<string,Profile>={student7:{name:"Алексей Мартынов",level:7,year:"2026/27"},student8:{name:"Мария Соколова",level:8,year:"2026/27"}};
+const keyFor=(login:string,year:string,level:number)=>`${login}:${year}:L${level}`;
+const v=(d:PageData,k:string)=>d[k]??"";
 
-const sections: Record<number, Section[]> = {
-  1:[{title:"Моя экспедиция к идее",fields:["Название проекта/идеи","Первая искра идеи","Что мы сделали?","Что получилось?","Что не получилось?"]},{title:"Экипаж и роли",fields:["Моя основная роль","Кто в команде и какую суперсилу привнёс","Мне в этой роли было… потому что…","Хочу попробовать себя в роли"]}],
-  2:[{title:"Как я понимаю, что мы на правильном пути",fields:["Главный признак успеха","Название проекта","В чём его суть?","Для кого он?","Главная фишка/технология"]},{title:"Зона туманности",fields:["Вопросы без ответа","Какие эксперты или помощь нужны?","Главная сложность или риск","Заметки"]}],
-  3:[{title:"Моё состояние",fields:["Настроение после интенсива","Сегодня я чувствую себя как…","Что радует в замысле?","Что вызывает беспокойство?"]},{title:"Список дел",fields:["Шаг 1","Шаг 2","Шаг 3","Заметки"]}],
-  4:[{title:"Моя роль и цель",fields:["Моя роль в походе","Главная цель","Что хочу наблюдать?"]},{title:"Штурманская папка",fields:["Что должен увидеть","Другой объект","Снаряжение","Группа и тактика"]}],
-  5:[{title:"Карта состояния",fields:["Старт","Середина пути","Сложный участок","Привал","Финиш","Что чувствовало тело?"]},{title:"Самые яркие открытия",fields:["Вид, который поразил","Звук, который запомнился","Наблюдение за собой","Главный вывод"]}],
-  6:[{title:"Статус проекта",fields:["Название проекта","Моя роль","Этап проекта","Первый эксперт","Второй эксперт"]},{title:"Инсайт этапа",fields:["Самый ценный вопрос","Неожиданный ответ","Главное открытие","Следующий шаг","Заметки"]}],
-  7:[{title:"Что мы знаем и умеем",fields:["Знание/навык 1","Знание/навык 2","Знание/навык 3","Знание/навык 4"]},{title:"Дефициты",fields:["Чего не знаем","Кто поможет","Главный вывод","Заметки"]}],
-  8:[{title:"Подготовка пилота",fields:["Название проекта","Что показываем завтра?","Роли команды"]},{title:"Обратная связь",fields:["Как собираем фидбек","Как поймём, что пилот удался?","Последние штрихи"]}],
-  9:[{title:"Проект в работе",fields:["Что получилось сегодня","Что было непонятно детям","Важная цитата ребёнка","Что изменили в прототипе"]},{title:"Обработка обратной связи",fields:["Баги","Непонятный интерфейс","Новые идеи","Что сохранить","Решение команды"]}],
-  10:[{title:"Финальный план",fields:["Название проекта","Цель пилота","Понедельник","Вторник","Среда"]},{title:"Продолжение",fields:["Четверг","Пятница","Что делаем с детьми","Что фиксируем","Риск и план Б"]}],
-  11:[{title:"Экспедиционный отчёт",fields:["Даты поездки","Самое сильное физическое ощущение","Самое сильное эмоциональное переживание","На что была похожа группа"]},{title:"Моя роль",fields:["Моя роль в экспедиции","Что помогало","Что было трудно","Заметки"]}],
-  12:[{title:"Самые яркие открытия",fields:["Вид, который врезался в память","Звук или запах","Наблюдение за собой","Главный вывод"]},{title:"Связь опытов",fields:["Идея о проекте из поездки","Навык, который поможет проекту","Заметки"]}],
-  13:[{title:"Финальный план пилота",fields:["Название проекта","Финальная цель","Понедельник","Вторник","Среда"]},{title:"Расписание",fields:["Четверг","Пятница","Что делаем с детьми","Что фиксируем"]}],
-  14:[{title:"Команда пилота",fields:["Финальная версия прототипа","Ведущий","Наблюдатель","Технический специалист","Ответственный за тайминг"]},{title:"Готовность",fields:["Как собираем фидбек","Критерии успеха","Что сделаем с обратной связью"]}],
-  15:[{title:"Разбор полётов",fields:["Название проекта","Главная гипотеза","Подтвердилась ли она?","Что исправить","Что сохранить"]},{title:"Технологизация",fields:["Решение команды","Список правок","Нужные ресурсы и эксперты","Оставшиеся вопросы"]}],
-  16:[{title:"Питч перед партнёрами",fields:["Цель на Partners Day","Ключевое сообщение","Что показываем?","Роли на питче"]},{title:"Структура питча",fields:["Проблема","Решение","Проверка гипотез","Команда и план","Призыв к действию"]}],
-  17:[{title:"Вопросы партнёров",fields:["Вопрос 1 и ответ","Вопрос 2 и ответ","Вопрос 3 и ответ"]},{title:"Сильные ответы",fields:["Вопрос 4 и ответ","Вопрос 5 и ответ","К чему хочу быть готов(а)"]}],
-  18:[{title:"Карта состояний",fields:["Старт","Середина МАРСфеста","Кульминация","Подготовка к Partners Day","Partners Day","Финиш"]},{title:"После финиша",fields:["Физическое ощущение","Эмоциональное переживание","Что хочется сохранить"]}],
-  19:[{title:"Командная динамика",fields:["На что была похожа команда?","Моя роль","Момент, который врезался в память","Ценная обратная связь"]},{title:"Открытия",fields:["Наблюдение за собой","Главный вывод","Вопрос партнёров","Навык на будущее"]}],
-  20:[{title:"Итоги проектного цикла",fields:["Название проекта","Суть идеи в одном предложении","Как изменилась идея?","Итоговое видение","Что получилось?"]},{title:"Экипаж",fields:["Что пока не получилось?","Моя роль","Как готовились к Partners Day","Следующий шаг"]}],
-  21:[{title:"Новый маршрут",fields:["Куда движется проект дальше?","Главная цель следующего этапа","Какой результат хотим получить?"]},{title:"Навигация",fields:["Три ближайших шага","Кто отвечает","Сроки","Что проверим первым"]}],
-  22:[{title:"Штаб-квартира реализации",fields:["Текущий статус","Моя роль","Что уже готово","Что в работе"]},{title:"Управление",fields:["Что заблокировано","Кто может помочь","Следующая контрольная точка","Заметки"]}],
-  23:[{title:"Дорожная карта",fields:["Этап 1","Этап 2","Этап 3","Этап 4"]},{title:"Контрольные точки",fields:["Сроки","Результаты","Ответственные","Как поймём, что этап завершён"]}],
-  24:[{title:"Риски",fields:["Главный риск","Почему он может возникнуть?","Вероятность","Последствия"]},{title:"План Б",fields:["Что сделаем заранее?","Что сделаем, если риск случится?","Кто поможет?","Сигнал для смены плана"]}],
-  25:[{title:"Ресурсы",fields:["Люди","Материалы","Технологии","Время"]},{title:"Партнёры",fields:["Кто уже помогает?","Кого хотим привлечь?","Что можем предложить партнёру?","Как свяжемся?"]}],
-  26:[{title:"Моя проектная вселенная",fields:["Где про проект говорили?","Ссылки или фото","Что сохранилось в портфолио"]},{title:"След проекта",fields:["Публикации","События","Отзывы","Заметки"]}],
-  27:[{title:"Что проект говорит обо мне",fields:["Я умею…","Мне интересно…","Я могу…","Моя сильная сторона"]},{title:"Для резюме",fields:["Одна фраза о проекте","Мой вклад","Измеримый результат","Чему научился(лась)"]}],
-  28:[{title:"Моё видео и цитата",fields:["Выбранная цитата","Почему выбрал(а)?","Что она означает?","С чем согласен(на)?"]},{title:"Моя позиция",fields:["С чем не согласен(на)?","Личная история","Как переформулирую цитату","Финальная мысль"]}],
-  29:[{title:"Сценарий видео",fields:["Вступление","Почему эта цитата","Смысловой разбор","Зона согласия"]},{title:"Продолжение сценария",fields:["Зона несогласия","Личная история","Моя версия цитаты","Финал и заметки"]}],
-  30:[{title:"Опыт, который сделал меня сильнее",fields:["Ситуация","Что было трудно?","Что я сделал(а)?","Какой результат получил(а)?"]},{title:"Мой рост",fields:["Какое качество проявилось?","Чему научился(лась)?","Как использую этот опыт дальше?","Фраза для портфолио"]}],
-  31:[{title:"Найди свою точку силы",fields:["Момент, когда у меня получилось","Что в этом моменте было про меня?","Какое качество проявилось сильнее всего?","Почему этот момент запомнился?"]},{title:"Моя сила",fields:["Чем я был(а) молодец?","Как я расскажу это другу?","Короткая история в 2–3 фразах","Заметки"]}],
-  32:[{title:"Вспомни точку роста",fields:["Момент, когда было сложно","Что не получилось?","Что пришлось изменить или начать заново?","Какой вывод я сделал(а)?"]},{title:"Что я понял(а)",fields:["Теперь я знаю…","Я научился(лась)…","Это помогло мне стать…","Мой главный вывод"]}],
-  33:[{title:"Собери историю",fields:["Я тот(та), кто…","Однажды со мной случилось…","Это показало, что я умею…","Но у меня был момент, когда…"]},{title:"Финал самопрезентации",fields:["Тогда я понял(а)…","Поэтому теперь я хочу…","Тон истории: смелый, добрый, уверенный или вдохновляющий","Финальное предложение"]}],
-  34:[{title:"Моё резюме: профиль",fields:["Имя и фамилия","Контакты","Коротко обо мне","Моя цель"]},{title:"Сильные стороны",fields:["Качество 1 и пример","Качество 2 и пример","Качество 3 и пример","Мои интересы"]}],
-  35:[{title:"Опыт и проекты",fields:["Проект 1: моя роль и результат","Проект 2: моя роль и результат","Проект 3: моя роль и результат","Достижения"]},{title:"Навыки",fields:["Что умею делать","Командные навыки","Цифровые навыки","Что хочу развить"]}],
-  36:[{title:"Моё мотивационное письмо",fields:["Зачем я хочу участвовать?","Что я уже делал(а) похожего?","Проект, который помог мне вырасти","Моё главное качество"]},{title:"Мой вклад",fields:["Что могу привнести в программу?","Чему хочу научиться?","Что меня вдохновляет?","Финальная фраза"]}],
-  37:[{title:"Сопроводительное письмо",fields:["Кому: ФИО и организация","От кого: ФИО и контакты","Дата","Почему обращаюсь"]},{title:"Основная часть",fields:["Два качества и примеры","Какой опыт подходит для программы","Что могу дать команде","Вежливый финал и подпись"]}],
-  38:[{title:"Финальная сборка портфолио",fields:["Моя минута силы","Лучший проект","Главное достижение","Ссылка на видео"]},{title:"Готовность к следующему шагу",fields:["Фраза для резюме","Мотивационное письмо готово","Сопроводительное письмо готово","Следующая цель"]}]
-};
-
-const value=(d:PageData,k:string)=>String(d[k]??"");
-function Field({label,v,readOnly,onChange}:{label:string;v:string;readOnly:boolean;onChange:(v:string)=>void}){return <label className="field"><span>{label}</span><textarea rows={label.length>35?4:3} value={v} readOnly={readOnly} onChange={e=>onChange(e.target.value)}/></label>}
-function Page({page,data,set,readOnly}:{page:number;data:PageData;set:(k:string,v:string)=>void;readOnly:boolean}){return <div className="sheet twoCol">{sections[page].map((s,si)=><section key={s.title}><h2>{s.title}</h2>{s.fields.map((f,i)=><Field key={f} label={f} v={value(data,`s${si}f${i}`)} readOnly={readOnly} onChange={v=>set(`s${si}f${i}`,v)}/>)}</section>)}</div>}
+function Field({label,value,readOnly,onChange}:{label:string;value:string;readOnly:boolean;onChange:(x:string)=>void}){return <label className="field"><span>{label}</span><textarea rows={label.length>38?4:3} value={value} readOnly={readOnly} onChange={e=>onChange(e.target.value)}/></label>}
+function PlannerPage({page,data,readOnly,set}:{page:number;data:PageData;readOnly:boolean;set:(k:string,x:string)=>void}){const spec=useMemo(()=>page,[page]);return <div className="sheet twoCol">{templates.middle.pages[1]&&Object.values((window as any).__dummy||{}).length===-1?null:null}{currentSections(spec).map((s,si)=><section key={s.title}><h2>{s.title}</h2>{s.fields.map((f,i)=><Field key={f} label={f} value={v(data,`s${si}f${i}`)} readOnly={readOnly} onChange={x=>set(`s${si}f${i}`,x)}/>)}</section>)}</div>}
+let activeSections:any[]=[];
+const currentSections=(_:number)=>activeSections;
 
 export default function Home(){
-  const[role,setRole]=useState<Role|null>(null),[login,setLogin]=useState(""),[password,setPassword]=useState(""),[error,setError]=useState(""),[page,setPage]=useState(1),[store,setStore]=useState<PlannerStore>({}),[saved,setSaved]=useState(false);
-  useEffect(()=>{const raw=localStorage.getItem("mars-planner-v4");if(raw)try{setStore(JSON.parse(raw))}catch{}else{const old=localStorage.getItem("mars-planner-v3");if(old)try{setStore(JSON.parse(old))}catch{}}},[]);
-  useEffect(()=>{if(!role)return;const t=setTimeout(()=>{localStorage.setItem("mars-planner-v4",JSON.stringify(store));setSaved(true);setTimeout(()=>setSaved(false),900)},450);return()=>clearTimeout(t)},[store,role]);
-  function enter(e:FormEvent){e.preventDefault();setError("");if(login==="student"&&password==="1234")setRole("student");else if(login==="teacher"&&password==="1234")setRole("teacher");else setError("Проверьте логин и пароль")}
-  function choose(r:Role){setLogin(r);setPassword("1234");setError("")}
-  if(!role)return <main className="loginScreen"><div className="orbit orbitOne"/><div className="orbit orbitTwo"/><div className="planet planetOrange"/><div className="planet planetPurple"/><section className="loginIntro"><img className="marsLogo" src="/mars-logo.svg" alt="МАРС"/><p className="loginEyebrow">ЦИФРОВАЯ ОБРАЗОВАТЕЛЬНАЯ СРЕДА</p><h1>Живая планёрка МАРС</h1><p className="loginTagline">Твой маршрут. Твои открытия. Твоё будущее.</p></section><section className="loginCard"><p className="loginWelcome">Добро пожаловать</p><h2>Вход в планёрку</h2><div className="roleSwitch"><button type="button" className={login==="student"?"selected":""} onClick={()=>choose("student")}>Я ученик</button><button type="button" className={login==="teacher"?"selected":""} onClick={()=>choose("teacher")}>Я педагог</button></div><form onSubmit={enter}><label>Логин<input value={login} onChange={e=>setLogin(e.target.value)}/></label><label>Пароль<input type="password" value={password} onChange={e=>setPassword(e.target.value)}/></label>{error&&<p className="error">{error}</p>}<button className="loginButton">Войти</button></form></section></main>;
-  const data=store[page]||{};const set=(k:string,v:string)=>setStore(s=>({...s,[page]:{...(s[page]||{}),[k]:v}}));const readOnly=role==="teacher";
-  return <main className="appShell"><header><div><strong>МАРС</strong><span>Живая планёрка</span></div><nav><span>{role==="student"?"Ученик":"Педагог"}</span><button onClick={()=>setRole(null)}>Выйти</button></nav></header><div className="workspace"><aside><p className="eyebrow">СОДЕРЖАНИЕ</p><h2>Страницы 1–38</h2>{Object.entries(titles).map(([n,t])=><button className={page===Number(n)?"active":""} key={n} onClick={()=>setPage(Number(n))}><span>{n}</span>{t}</button>)}</aside><section className="plannerPage"><div className="pageTop"><div><p className="eyebrow">СТРАНИЦА {page} ИЗ 38</p><h1>{titles[page]}</h1></div><span className={saved?"save saved":"save"}>{saved?"Сохранено":"Автосохранение"}</span></div><Page {...{page,data,set,readOnly}}/><section className="commentBox"><p className="eyebrow">КОММЕНТАРИЙ ПЕДАГОГА</p>{role==="teacher"?<textarea value={value(data,"teacherComment")} onChange={e=>set("teacherComment",e.target.value)} placeholder="Поддерживающий комментарий ученику…"/>:<p>{value(data,"teacherComment")||"Педагог пока не оставил комментарий."}</p>}</section></section></div></main>
+ const[account,setAccount]=useState<Account|null>(null),[login,setLogin]=useState(""),[password,setPassword]=useState(""),[error,setError]=useState("");
+ const[profiles,setProfiles]=useState<Record<string,Profile>>(demoProfiles),[selectedStudent,setSelectedStudent]=useState("student7"),[page,setPage]=useState(1),[store,setStore]=useState<PlannerStore>({}),[saved,setSaved]=useState(false);
+ useEffect(()=>{try{const p=localStorage.getItem("mars-profiles-v1");if(p)setProfiles(JSON.parse(p));const s=localStorage.getItem("mars-planners-v1");if(s)setStore(JSON.parse(s));else{const old=localStorage.getItem("mars-planner-v4");if(old)setStore({[keyFor("student7","2026/27",7)]:JSON.parse(old)})}}catch{}},[]);
+ useEffect(()=>{localStorage.setItem("mars-profiles-v1",JSON.stringify(profiles))},[profiles]);
+ useEffect(()=>{if(!account)return;const t=setTimeout(()=>{localStorage.setItem("mars-planners-v1",JSON.stringify(store));setSaved(true);setTimeout(()=>setSaved(false),900)},450);return()=>clearTimeout(t)},[store,account]);
+ function enter(e:FormEvent){e.preventDefault();const found=demoAccounts.find(a=>a.login===login&&a.password===password);if(!found){setError("Проверьте логин и пароль");return}setError("");setAccount(found);if(found.role==="student")setSelectedStudent(found.login);setPage(1)}
+ function choose(x:string){setLogin(x);setPassword("1234");setError("")}
+ function logout(){setAccount(null);setLogin("");setPassword("");setPage(1)}
+ if(!account)return <main className="loginScreen"><div className="orbit orbitOne"/><div className="orbit orbitTwo"/><div className="planet planetOrange"/><div className="planet planetPurple"/><section className="loginIntro"><img className="marsLogo" src="/mars-logo.svg" alt="МАРС"/><p className="loginEyebrow">ЦИФРОВАЯ ОБРАЗОВАТЕЛЬНАЯ СРЕДА</p><h1>Живая планёрка МАРС</h1><p className="loginTagline">Уровень и планёрка назначаются администратором.</p></section><section className="loginCard"><p className="loginWelcome">Добро пожаловать</p><h2>Вход в планёрку</h2><div className="roleSwitch"><button type="button" className={login==="student7"?"selected":""} onClick={()=>choose("student7")}>Ученик 7</button><button type="button" className={login==="student8"?"selected":""} onClick={()=>choose("student8")}>Ученик 8</button><button type="button" className={login==="teacher"?"selected":""} onClick={()=>choose("teacher")}>Педагог</button><button type="button" className={login==="admin"?"selected":""} onClick={()=>choose("admin")}>Администратор</button></div><form onSubmit={enter}><label>Логин<input value={login} onChange={e=>setLogin(e.target.value)}/></label><label>Пароль<input type="password" value={password} onChange={e=>setPassword(e.target.value)}/></label>{error&&<p className="error">{error}</p>}<button className="loginButton">Войти</button></form><p style={{fontSize:12,opacity:.7}}>Демо-пароль: 1234</p></section></main>;
+
+ const studentLogin=account.role==="student"?account.login:selectedStudent;
+ const profile=profiles[studentLogin]||demoProfiles.student7;
+ const templateId=templateForLevel(profile.level);
+ const template=templates[templateId];
+ const plannerKey=keyFor(studentLogin,profile.year,profile.level);
+ const planner=store[plannerKey]||{};
+ const data=planner[page]||{};
+ const readOnly=account.role!=="student";
+ const pageSpec=template.pages[page]||template.pages[1];activeSections=pageSpec.sections;
+ const set=(k:string,x:string)=>setStore(s=>({...s,[plannerKey]:{...(s[plannerKey]||{}),[page]:{...((s[plannerKey]||{})[page]||{}),[k]:x}}}));
+ const total=Object.keys(template.pages).length;
+ function promote(){const next=Math.min(11,profile.level+1);const yearParts=profile.year.split("/");const start=Number(yearParts[0])+1;const nextYear=`${start}/${String((start+1)%100).padStart(2,"0")}`;setProfiles(p=>({...p,[studentLogin]:{...profile,level:next,year:nextYear}}));setPage(1)}
+ const history=Object.entries(store).filter(([k])=>k.startsWith(studentLogin+":")).map(([k])=>{const m=k.match(/:(\d{4}\/\d{2}):L(\d+)/);return m?{key:k,year:m[1],level:Number(m[2])}:null}).filter(Boolean) as {key:string;year:string;level:number}[];
+
+ if(account.role==="admin")return <main className="appShell"><header><div><strong>МАРС</strong><span>Администрирование</span></div><nav><span>{account.name}</span><button onClick={logout}>Выйти</button></nav></header><div className="workspace"><aside><p className="eyebrow">УЧЕНИКИ</p>{Object.entries(profiles).map(([id,p])=><button key={id} className={selectedStudent===id?"active":""} onClick={()=>setSelectedStudent(id)}><span>{p.level}</span>{p.name}</button>)}</aside><section className="plannerPage"><div className="pageTop"><div><p className="eyebrow">УЧЁТНАЯ ЗАПИСЬ</p><h1>{profile.name}</h1></div></div><div className="sheet twoCol"><section><h2>Текущие данные</h2><Field label="Имя ученика" value={profile.name} readOnly={false} onChange={x=>setProfiles(p=>({...p,[studentLogin]:{...profile,name:x}}))}/><label className="field"><span>Уровень</span><select value={profile.level} onChange={e=>setProfiles(p=>({...p,[studentLogin]:{...profile,level:Number(e.target.value)}}))}>{[5,6,7,8,9,10,11].map(n=><option key={n}>{n}</option>)}</select></label><Field label="Учебный год" value={profile.year} readOnly={false} onChange={x=>setProfiles(p=>({...p,[studentLogin]:{...profile,year:x}}))}/><p><b>Шаблон:</b> {template.label}, {template.levels}</p><button className="loginButton" onClick={promote}>Перевести на следующий уровень</button></section><section><h2>История планёрок</h2>{history.length?history.map(h=><p key={h.key}>{h.year} — {h.level} уровень — {templateForLevel(h.level)==="middle"?"средняя школа":"старшая школа"}</p>):<p>История появится после первого заполнения.</p>}<p>При переводе создаётся новый экземпляр планёрки. Старые данные не перезаписываются.</p></section></div></section></div></main>;
+
+ return <main className="appShell"><header><div><strong>МАРС</strong><span>Живая планёрка</span></div><nav>{account.role==="teacher"&&<select value={selectedStudent} onChange={e=>{setSelectedStudent(e.target.value);setPage(1)}}>{Object.entries(profiles).map(([id,p])=><option key={id} value={id}>{p.name}</option>)}</select>}<span>{account.role==="student"?`${profile.name} · ${profile.level} уровень`:account.name}</span><button onClick={logout}>Выйти</button></nav></header><div className="workspace"><aside><p className="eyebrow">{template.label.toUpperCase()}</p><h2>{profile.level} уровень · {profile.year}</h2><p style={{fontSize:12,opacity:.7}}>{template.levels}</p>{Object.entries(template.pages).map(([n,s])=><button className={page===Number(n)?"active":""} key={n} onClick={()=>setPage(Number(n))}><span>{n}</span>{s.title}</button>)}</aside><section className="plannerPage"><div className="pageTop"><div><p className="eyebrow">СТРАНИЦА {page} ИЗ {total} · {profile.year}</p><h1>{pageSpec.title}</h1><p>{template.title} · {profile.level} уровень</p></div><span className={saved?"save saved":"save"}>{saved?"Сохранено":readOnly?"Режим просмотра":"Автосохранение"}</span></div><PlannerPage {...{page,data,readOnly,set}}/><section className="commentBox"><p className="eyebrow">КОММЕНТАРИЙ ПЕДАГОГА</p>{account.role==="teacher"?<textarea value={v(data,"teacherComment")} onChange={e=>set("teacherComment",e.target.value)} placeholder="Поддерживающий комментарий ученику…"/>:<p>{v(data,"teacherComment")||"Педагог пока не оставил комментарий."}</p>}</section></section></div></main>
 }
