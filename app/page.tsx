@@ -1,5 +1,5 @@
 "use client";
-import {FormEvent,useEffect,useMemo,useState} from "react";
+import {FormEvent,useEffect,useState} from "react";
 import {templates,templateForLevel,Section} from "./plannerData";
 
 type Role="student"|"teacher"|"admin";
@@ -41,7 +41,7 @@ export default function Home(){
  const set=(k:string,x:string)=>setStore(s=>({...s,[key]:{...(s[key]||{}),[page]:{...((s[key]||{})[page]||{}),[k]:x}}}));
  const history=Object.keys(store).filter(k=>k.startsWith(studentLogin+":")).map(k=>{const m=k.match(/:(\d{4}\/\d{2}):L(\d+)/);return m?{year:m[1],level:Number(m[2])}:null}).filter(Boolean) as {year:string;level:number}[];
  function promote(){const level=Math.min(11,profile.level+1),start=Number(profile.year.slice(0,4))+1,year=`${start}/${String((start+1)%100).padStart(2,"0")}`;setProfiles(p=>({...p,[studentLogin]:{...profile,level,year}}));setPage(1)}
- const filledPages=useMemo(()=>Object.values(planner).filter(p=>Object.values(p).some(v=>v.trim().length>0)).length,[planner]);
+ const filledPages=Object.values(planner).filter(p=>Object.values(p).some(v=>v.trim().length>0)).length;
  const progress=Math.round((filledPages/Math.max(total,1))*100);
  const routeIcons=["🚀","🪞","🎯","📚","💡","🤝","⭐","🌍","🏁","🧭","✨","🪐"];
 
