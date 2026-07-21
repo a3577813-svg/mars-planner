@@ -2,53 +2,104 @@
 
 import {useEffect,useState} from "react";
 
-type StoredProps={id:string;label:string;rows?:number};
+type StoredFieldProps={id:string;label:string;rows?:number;className?:string};
 
-function useStored(id:string){const[v,setV]=useState("");useEffect(()=>{setV(localStorage.getItem("mars-book-"+id)||"")},[id]);useEffect(()=>{const t=setTimeout(()=>localStorage.setItem("mars-book-"+id,v),220);return()=>clearTimeout(t)},[id,v]);return[v,setV] as const}
-function Field({id,label,rows=2}:StoredProps){const[v,setV]=useStored(id);return <label className="field"><span>{label}</span><textarea rows={rows} value={v} onChange={e=>setV(e.target.value)}/></label>}
-function Note({children}:{children:React.ReactNode}){return <aside className="note">{children}</aside>}
-function Role({icon,text,id}:{icon:string;text:string;id:string}){const[v,setV]=useStored(id);return <label className="role"><span>{icon}</span><b>{text}</b><input value={v} onChange={e=>setV(e.target.value)} placeholder="Имя и суперсила"/></label>}
-function Scale({text,id}:{text:string;id:string}){const[v,setV]=useStored(id);return <div className="scale"><span>{text}</span>{["🤔","🟡","✅"].map(x=><label key={x}>{x}<input type="radio" name={id} checked={v===x} onChange={()=>setV(x)}/></label>)}</div>}
+function useStored(id:string){
+  const[value,setValue]=useState("");
+  useEffect(()=>{setValue(localStorage.getItem(`mars-book-${id}`)||"")},[id]);
+  useEffect(()=>{const timer=setTimeout(()=>localStorage.setItem(`mars-book-${id}`,value),220);return()=>clearTimeout(timer)},[id,value]);
+  return[value,setValue] as const;
+}
 
-const stages=["💡 Замысел идеи (Старт)","🦸 Проектирование решения (Прокладываем курс)","👷 Пилотирование (Первый запуск двигателя)","👨‍💻 Технологизация (Навигационная система)","👩‍💼 Partners Day (Сигнал во Вселенную)","👩‍🚀 Реализация (Выход на орбиту)"];
+function LinedField({id,label,rows=3,className=""}:StoredFieldProps){
+  const[value,setValue]=useStored(id);
+  return <label className={`linedField ${className}`}>
+    <strong>{label}</strong>
+    <textarea rows={rows} value={value} onChange={e=>setValue(e.target.value)} aria-label={label}/>
+  </label>
+}
 
-const pages=[
- {title:"Моя экспедиция к идее",left:<>
-  <div className="two"><Field id="p1name1" label="Название твоего проекта/идеи:"/><Field id="p1name2" label="Название твоего проекта/идеи:"/></div>
-  <div className="sparkGrid"><div><h3>✨Первая мысль/впечатление:</h3><p>«Что стало самой первой \"искрой\" для этой идеи? Нарисуй или опиши»</p><Note>СОВЕТ: Если не можешь объяснить идею просто - значит, не до конца ее понял. Попробуй рассказать ее другу, который не был на интенсиве.</Note></div><Field id="p1spark" label="" rows={8}/></div>
-  <h2>Этапы</h2><div className="route">{stages.map((s,i)=><div key={s}><i>{i+1}</i><span>{s}</span></div>)}</div>
-  <Note>А ЗНАЕШЬ? 90% стартапов меняют свою идею после первых тестов. Пилотирование - это не про провал, а про сбор данных!</Note>
- </>,right:<>
-  <div className="titleRow"><h2>Экипаж и Роли</h2><Note>ФАКТ: Самые успешные команды - не те, кто не ошибается, а те, кто быстро узнает, что не работает, и меняет курс.</Note></div>
-  <p>Моя основная роль в этом полете: (отметь галочкой или обведи)</p>
-  <p>Кто еще в твоей команде? Напиши их имена рядом с ролями и суперсилу, которую они привнесли в проект</p>
-  <div className="roles"><Role id="r1" icon="👑" text="Лидер (стратег) — ось проекта"/><Role id="r2" icon="🔬" text="Аналитик (исследователь) - связь с реальностью"/><Role id="r3" icon="📋" text="Маркетинг (внешний мир) - переводчик смысла"/><Role id="r4" icon="⚙" text="Технолог - превращение идеи в работающую штуку"/><Role id="r5" icon="✨" text={'Другое: (например, "Генератор идей", "Дизайнер")'}/></div>
-  <div className="two"><Field id="p1rolefeel" label="Мне в этой роли было: (легко / интересно / сложно) потому что..."/><Field id="p1newrole" label="Хочу попробовать себя в роли:"/></div>
-  <div className="three"><Field id="p1did" label="Что мы сделали?"/><Field id="p1worked" label="Что получилось?"/><Field id="p1failed" label="Что не получилось?"/></div>
- </>},
- {title:"Сканирование локации",left:<>
-  <h2>Как я понимаю, что мы на правильном пути</h2><p>Отметь, насколько эти утверждения верны для твоего проекта сейчас:</p>
-  <div className="scales"><Scale id="s1" text="У нас есть понятное название и ясная цель"/><Scale id="s2" text="Мы можем объяснить идею за 30 секунд"/><Scale id="s3" text="Каждый в команде знает свою задачу"/><Scale id="s4" text="Мы понимаем, для кого и для чего наш проект"/><Scale id="s5" text="У нас есть первый макет/план/схема"/><Scale id="s6" text="Мы видим следующие 2-3 шага"/></div>
-  <Field id="p2success" label="Главный признак успеха для меня лично прямо сейчас:"/>
-  <section className="outlined"><h3>Опиши свою проектную инициативу</h3><p>«Представь, что ты рассказываешь о своем открытии по рации. Кратко и ясно!»</p><div className="two"><Field id="p2world" label="Как называется твой мир? (Название проекта)"/><Field id="p2essence" label="В чем его суть? (1-2 предложения)"/><Field id="p2audience" label="Для кого он? (Целевая аудитория)"/><Field id="p2feature" label="Какой он на ощупь? (Главная фишка/технология)"/></div></section>
-  <Note>🧭 Идея становится инициативой, когда ей верит не только автор. Расскажи свою задумку другим - если они откликнутся, это сигнал, что ты на верном пути.</Note>
- </>,right:<>
-  <h2>Зона туманности: чего я пока не знаю и чего боюсь</h2>
-  <div className="two"><Field id="p2questions" label="Вопросы, на которые у меня пока нет ответа:" rows={5}/><div><Note>🛠 Не все сразу ясно. Часто в начале проекта не знают всех ответов. Главное - задать правильные вопросы.</Note><Field id="p2experts" label="Какие эксперты или помощь нужны, чтобы развеять этот туман?" rows={3}/></div></div>
-  <Note>🤝 Эксперты нужны не только «потом». Иногда пара советов на старте экономят месяцы работы.</Note>
-  <div className="two"><Field id="p2risk" label="Главная сложность или риск, который я пока вижу" rows={4}/><Field id="p2notes" label="Заметки" rows={4}/></div>
-  <Note>🌱 Большие дела начинаются с маленького шага. У LEGO первые наборы собирались из остатков дерева, а теперь это мировая компания.</Note>
- </>},
- {title:"Блок связи с землёй: моё состояние и впечатления",left:<>
-  <h2>Мое настроение после интенсива: (можно выбрать иконку)</h2>
-  <div className="moods">{["Вдохновлен 🤩","Доволен 😊","Задумчив 🤔","Устал 😐","Перегружен 😥"].map(x=><button key={x}>{x}</button>)}</div>
-  <div className="two"><Field id="p3joy" label="Что меня больше всего радует в нашем замысле?" rows={4}/><Field id="p3worry" label="Что вызывает беспокойство или сомнения?" rows={4}/></div>
-  <h3>Сегодня я чувствую себя как…</h3><div className="choices"><label>👩‍🚀 Исследователь, открывающий новую планету</label><label>🧑‍🔧 Инженер, у которого все детали пока не стыкуются</label><label>🦸 Капитан, который видит цель и ведет команду</label><label>👩 Свой вариант:</label></div>
-  <Field id="p3state" label="Свой вариант:"/><Note>🔄 Неудачи - часть пути. Если что-то не выходит - это не провал, а проверка гипотезы.</Note><Field id="p3notes" label="Заметки" rows={3}/>
- </>,right:<>
-  <div className="storyGrid"><section><h2>Истории стартапов</h2><div className="story">Смешарики задумывались как игра для конфет и изначально назывались Сластёны. Но эта идея провалилась, и разработчики решили попробовать запустить многосерийный мультфильм с круглыми героями, в котором не было бы отрицательных героев. Дело было в конце девяностых, когда компьютерная анимация только начинала появляться, и первый бизнес-план Смешариков был написан по старинке на миллиметровой бумагке.</div></section><section><h2>📑 Список Дел</h2><p>Напиши 3 основных шага, которые тебе нужно предпринять для работы над проектом</p><Field id="p3step1" label="1"/><Field id="p3step2" label="2"/><Field id="p3step3" label="3"/></section></div>
- </>}
+const roles=[
+  ["👑","Лидер","Держит общий замысел, помогает команде двигаться к цели."],
+  ["🔎","Аналитик","Исследует аудиторию, вопросы и реальные потребности."],
+  ["⚙️","Технолог","Превращает идею в работающий прототип."],
+  ["📣","Коммуникатор","Объясняет смысл проекта людям и партнёрам."]
 ];
 
-export default function Book(){const[page,setPage]=useState(0);const p=pages[page];return <main className="bookApp"><header><img src="/mars-logo.svg" alt="МАРС"/><div><b>БОРТОВОЙ ЖУРНАЛ — ЗАМЕТКИ С ИНТЕНСИВА</b><span>Печатный разворот · этап {page+1} из 3</span></div><a href="/">← В планёрку</a></header><nav>{pages.map((x,i)=><button key={x.title} className={i===page?"active":""} onClick={()=>setPage(i)}>{i+1}. {x.title}</button>)}</nav><section className="spread"><article className="paper left"><h1>{p.title}</h1>{p.left}</article><article className="paper right">{p.right}</article></section><footer><button disabled={page===0} onClick={()=>setPage(x=>x-1)}>← Предыдущий этап</button><span>Текст сохранён из печатной планёрки</span><button disabled={page===pages.length-1} onClick={()=>setPage(x=>x+1)}>Следующий этап →</button></footer><style jsx global>{`
-*{box-sizing:border-box}body{margin:0;background:#dcd9df;color:#5720b5;font-family:"Trebuchet MS",Arial,sans-serif}.bookApp{min-height:100vh;padding-bottom:24px;background:#dedbe2}header{height:70px;background:#fffaf0;display:flex;align-items:center;gap:16px;padding:8px 24px;border-bottom:1px solid #d2ccd8}header img{width:70px}header div{display:grid;gap:2px;flex:1}header b{font-size:14px}header span{font-size:11px;color:#7d728c}header a{color:#5720b5;text-decoration:none;font-weight:800;font-size:13px}nav{max-width:1500px;margin:12px auto 8px;padding:0 14px;display:flex;gap:7px;overflow:auto}nav button{border:0;border-radius:999px;padding:8px 12px;background:#fff;color:#6a5d77;font-weight:800;white-space:nowrap;cursor:pointer;font-size:12px}nav button.active{background:#5720b5;color:#fff}.spread{max-width:1500px;margin:auto;padding:0 14px;display:grid;grid-template-columns:1fr 1fr;min-height:760px;filter:drop-shadow(0 20px 30px #3d2a4e2b)}.paper{background:#fffdf8;padding:20px 24px 24px;position:relative;overflow:hidden}.paper.left{border-radius:15px 0 0 15px;border-right:1px solid #d5cedd}.paper.right{border-radius:0 15px 15px 0;border-left:1px solid #eee8f2}h1,h2,h3{margin:0 0 8px;color:#5920c2}h1{font-size:25px}h2{font-size:20px}h3{font-size:16px}p{margin:5px 0 9px;font-size:13px;line-height:1.35}.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}.three{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.field{display:grid;gap:4px;margin:6px 0}.field span{font-size:12px;font-weight:800}.field textarea{width:100%;resize:vertical;border:1px solid #b6dcdf;border-radius:9px;background:#eefbfc;padding:7px;min-height:42px;color:#36245b}.note{display:block;width:fit-content;max-width:100%;margin:6px 0;padding:6px 9px;border-radius:8px;background:#dff3f5;border-left:4px solid #4eb4bd;color:#255a61;font-size:11.5px;line-height:1.28;font-weight:700}.titleRow{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.titleRow .note{max-width:58%;margin-top:0}.sparkGrid{display:grid;grid-template-columns:.9fr 1.1fr;gap:12px;align-items:start}.route{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:6px 0}.route div{display:flex;gap:7px;align-items:center;border:1px solid #eadcf8;border-radius:9px;padding:6px;font-size:10.5px;background:#fbf8ff}.route i{width:20px;height:20px;border-radius:50%;background:#6027bd;color:#fff;display:grid;place-items:center;font-style:normal;font-weight:900;flex:0 0 auto}.roles{display:grid;gap:5px}.role{display:grid;grid-template-columns:26px 1fr 150px;gap:7px;align-items:center;padding:6px 8px;border-radius:9px;background:#faf7ff;border:1px solid #eadff5;font-size:11px}.role input{min-width:0;border:0;border-bottom:1px solid #b7a8ca;background:transparent;padding:4px}.scales{display:grid;gap:4px}.scale{display:grid;grid-template-columns:1fr repeat(3,42px);align-items:center;padding:5px 7px;border-bottom:1px solid #e9e1ee;font-size:11.5px}.scale label{text-align:center}.outlined{border:1px dashed #7e54c3;border-radius:10px;padding:9px;margin:7px 0}.moods{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px}.moods button{border:1px solid #d8c9ea;border-radius:999px;background:#fff;padding:6px 9px;font-size:11px}.choices{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:6px 0}.choices label{padding:7px;border:1px solid #e6dded;border-radius:8px;font-size:11.5px}.storyGrid{display:grid;grid-template-columns:1.15fr .85fr;gap:14px}.story{padding:12px;border-radius:10px;background:#f1edff;font-size:13px;line-height:1.5;color:#402567}footer{max-width:1500px;margin:10px auto 0;padding:0 14px;display:flex;justify-content:space-between;align-items:center;gap:12px}footer button{border:0;border-radius:10px;background:#5720b5;color:#fff;padding:9px 12px;font-weight:800}footer button:disabled{opacity:.35}footer span{font-size:11px;color:#6d6278}@media(max-width:900px){.spread{grid-template-columns:1fr}.paper.left,.paper.right{border-radius:12px;border:0}.two,.three,.sparkGrid,.storyGrid{grid-template-columns:1fr}.titleRow{display:block}.titleRow .note{max-width:100%}.route{grid-template-columns:1fr 1fr}.role{grid-template-columns:26px 1fr}.role input{grid-column:2}.choices{grid-template-columns:1fr}}`}</style></main>}
+const steps=[
+  "Найти проблему и понять, кому мы можем помочь",
+  "Придумать идею решения",
+  "Собрать команду и распределить роли",
+  "Изучить опыт и существующие решения",
+  "Создать прототип и проверить на первых пользователях",
+  "Подготовить презентацию и защитить идею партнёрам"
+];
+
+export default function Book(){
+  const[checked,setChecked]=useState<boolean[]>(()=>Array(steps.length).fill(false));
+  useEffect(()=>{const raw=localStorage.getItem("mars-book-steps");if(raw)try{setChecked(JSON.parse(raw))}catch{}},[]);
+  useEffect(()=>{localStorage.setItem("mars-book-steps",JSON.stringify(checked))},[checked]);
+
+  return <main className="bookMode">
+    <header className="cabinetBar">
+      <div className="brand"><img src="/mars-logo.svg" alt="МАРС"/><div><b>Живая планёрка</b><span>Личный кабинет ученика</span></div></div>
+      <div className="stageMeta"><span>Этап 1 из 33</span><span className="saved">Сохранено ✓</span></div>
+      <a href="/">← К моему маршруту</a>
+    </header>
+
+    <section className="bookFrame">
+      <div className="spread">
+        <article className="page leftPage">
+          <div className="pageNumber">01</div>
+          <p className="stageLabel">ЭТАП 1</p>
+          <h1>Моя экспедиция к идее</h1>
+          <div className="titleRule"/>
+
+          <div className="whyRow"><b>ЗАЧЕМ ЭТОТ ЭТАП</b><p>Зафиксировать первую версию идеи, увидеть команду и понять, с чего начинается проектный маршрут.</p></div>
+
+          <div className="infoRow">
+            <aside className="miniNote fact"><b>🚀 ФАКТ</b><p>Сильный проект начинается не с идеального ответа, а с точного вопроса.</p></aside>
+            <aside className="miniNote tip"><b>💡 СОВЕТ</b><p>Сначала объясни идею простыми словами. Термины можно добавить позже.</p></aside>
+            <div className="rocket">🚀</div>
+          </div>
+
+          <LinedField id="p1-project" label="Название проекта / идеи" rows={2}/>
+          <LinedField id="p1-spark" label="Первая искра идеи" rows={4}/>
+
+          <div className="twoFields">
+            <LinedField id="p1-success" label="Что получилось?" rows={3}/>
+            <LinedField id="p1-notyet" label="Что пока не получилось?" rows={3}/>
+          </div>
+
+          <div className="bottomQuote"><span>✦</span><p>Идея — это только начало.<br/>Дальше мы превращаем её в путешествие.</p></div>
+        </article>
+
+        <article className="page rightPage">
+          <div className="rightTopGrid">
+            <section>
+              <h2>Экипаж и роли</h2>
+              <div className="roleList">{roles.map(([icon,name,desc])=><div className="role" key={name}><span>{icon}</span><div><b>{name}</b><p>{desc}</p></div></div>)}</div>
+            </section>
+            <section className="roleFields">
+              <LinedField id="p1-role" label="Моя основная роль" rows={4}/>
+              <LinedField id="p1-role-next" label="Роль, которую хочу попробовать" rows={4}/>
+            </section>
+          </div>
+
+          <section className="stepsBox">
+            <div className="stepsTitle"><h3>Первые шаги по маршруту</h3><span>(отметь или допиши)</span></div>
+            {steps.map((step,i)=><label className="step" key={step}><span className="stepNo">{i+1}</span><span className="stepText">{step}</span><input type="checkbox" checked={checked[i]} onChange={()=>setChecked(list=>list.map((x,j)=>j===i?!x:x))}/></label>)}
+          </section>
+
+          <LinedField id="p1-important" label="Что для меня важно в этом проекте?" rows={4} className="importantField"/>
+        </article>
+      </div>
+    </section>
+
+    <footer className="bookFooter"><button disabled>← Предыдущий разворот</button><span>01 / 33</span><button>Следующий разворот →</button></footer>
+
+    <style jsx global>{`
+      *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:#e8e4ed;color:#242033;font-family:Inter,Arial,sans-serif}.bookMode{min-height:100vh;padding-bottom:24px}.cabinetBar{height:72px;display:flex;align-items:center;gap:24px;padding:0 28px;background:#fff;border-bottom:1px solid #ddd7e4;position:sticky;top:0;z-index:20}.brand{display:flex;align-items:center;gap:14px}.brand img{width:72px}.brand div{display:grid}.brand b{color:#5220a8}.brand span{font-size:12px;color:#887f91}.stageMeta{margin-left:auto;display:flex;gap:10px;align-items:center;font-size:13px;font-weight:800}.stageMeta span{padding:8px 11px;border-radius:999px;background:#f0ebf7;color:#6130b5}.stageMeta .saved{background:#ebf6ee;color:#35734b}.cabinetBar a{color:#5220a8;text-decoration:none;font-weight:800;font-size:13px}.bookFrame{padding:18px 22px 10px}.spread{max-width:1420px;margin:auto;display:grid;grid-template-columns:1fr 1fr;filter:drop-shadow(0 24px 40px #2d203b28)}.page{min-height:800px;background:#fffdf8;padding:30px 34px 26px;position:relative;overflow:hidden}.leftPage{border-radius:18px 0 0 18px;border-right:1px solid #ddd4e2}.rightPage{border-radius:0 18px 18px 0;border-left:1px solid #efe9f2}.leftPage:after,.rightPage:before{content:"";position:absolute;top:0;bottom:0;width:22px;pointer-events:none}.leftPage:after{right:0;background:linear-gradient(90deg,transparent,#3e2b4f12)}.rightPage:before{left:0;background:linear-gradient(90deg,#3e2b4f12,transparent)}.pageNumber{position:absolute;right:34px;top:28px;font:800 44px Georgia,serif;color:#f05b37}.stageLabel{margin:0 0 8px;color:#7444c6;font-size:12px;font-weight:900;letter-spacing:.12em}.page h1{margin:0;font:800 43px/1.06 Georgia,serif;color:#231b2e;max-width:78%}.titleRule{height:3px;background:#2b2333;margin:20px 0 22px}.whyRow{display:grid;grid-template-columns:185px 1fr;gap:18px;align-items:start;padding:0 0 18px;border-bottom:1px solid #ddd5df}.whyRow b{color:#7243c1;font-size:14px;letter-spacing:.08em}.whyRow p{margin:0;line-height:1.45}.infoRow{display:grid;grid-template-columns:1fr 1fr 90px;gap:14px;align-items:stretch;margin:18px 0 14px}.miniNote{padding:14px;border-radius:4px;border:1px solid}.miniNote b{font-size:12px;letter-spacing:.06em}.miniNote p{margin:8px 0 0;font-size:13px;line-height:1.38}.miniNote.fact{background:#fff5f0;border-color:#f0a98f}.miniNote.tip{background:#f5f0ff;border-color:#bfa9eb}.rocket{display:grid;place-items:center;font-size:54px;transform:rotate(-12deg)}.linedField{display:grid;gap:8px;border:1px solid #cfc5bb;padding:13px 13px 10px;margin:12px 0;background:#fffefb}.linedField strong{font:700 19px Georgia,serif;color:#252032}.linedField textarea{width:100%;border:0;outline:0;resize:vertical;font:16px/1.75 Inter,Arial,sans-serif;background:repeating-linear-gradient(to bottom,transparent 0,transparent 27px,#ddd7cf 28px);min-height:56px;color:#2a2233}.twoFields{display:grid;grid-template-columns:1fr 1fr;gap:14px}.bottomQuote{display:flex;gap:12px;align-items:center;border:1px dashed #77707b;border-radius:10px;padding:10px 14px;margin-top:16px;max-width:72%;font-size:13px}.bottomQuote span{color:#f05b37}.bottomQuote p{margin:0;line-height:1.45}.rightTopGrid{display:grid;grid-template-columns:1.08fr .92fr;gap:24px}.rightPage h2{margin:0 0 14px;font:800 27px Georgia,serif;color:#231b2e}.roleList{border:1px dashed #cfc7c0;padding:6px 12px}.role{display:grid;grid-template-columns:42px 1fr;gap:12px;padding:12px 0;border-bottom:1px solid #ded7d0}.role:last-child{border-bottom:0}.role>span{font-size:28px}.role b{font-size:16px}.role p{margin:4px 0 0;color:#5f5864;font-size:12px;line-height:1.35}.roleFields .linedField{margin:0 0 16px}.stepsBox{border:1px solid #efa98d;padding:12px 14px;margin-top:18px}.stepsTitle{display:flex;align-items:baseline;gap:8px;margin-bottom:6px}.stepsTitle h3{margin:0;font:800 20px Georgia,serif}.stepsTitle span{font-size:12px}.step{display:grid;grid-template-columns:26px 1fr 24px;align-items:center;gap:8px;min-height:34px;border-top:1px dashed #d9d0c8;font-size:13px}.stepNo{font-weight:900}.step input{width:20px;height:20px;accent-color:#f05b37}.importantField{margin-top:18px;background:#f6f0ff;border-color:#cbb7ee}.bookFooter{max-width:1420px;margin:12px auto 0;padding:0 22px;display:flex;justify-content:space-between;align-items:center}.bookFooter button{border:0;border-radius:12px;padding:11px 15px;background:#5b27b1;color:#fff;font-weight:800}.bookFooter button:disabled{opacity:.35}.bookFooter span{font-weight:900;color:#5b27b1}@media(max-width:980px){.cabinetBar{padding:0 16px}.brand div{display:none}.stageMeta{display:none}.bookFrame{padding:12px}.spread{grid-template-columns:1fr}.page{min-height:auto;border-radius:14px!important;border:0!important}.leftPage:after,.rightPage:before{display:none}.rightTopGrid{grid-template-columns:1fr}.rightPage{margin-top:12px}.infoRow{grid-template-columns:1fr 1fr}.rocket{display:none}}@media(max-width:620px){.cabinetBar{height:62px}.cabinetBar a{font-size:0}.cabinetBar a:after{content:"← Маршрут";font-size:13px}.page{padding:22px 18px}.page h1{font-size:34px}.whyRow{grid-template-columns:1fr}.infoRow,.twoFields{grid-template-columns:1fr}.pageNumber{font-size:34px}.bottomQuote{max-width:100%}.bookFooter{padding:0 12px}.bookFooter button{font-size:12px;padding:9px 10px}}
+    `}</style>
+  </main>
+}
