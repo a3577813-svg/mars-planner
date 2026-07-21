@@ -1,246 +1,26 @@
 "use client";
 
-import { ChangeEvent, FormEvent, PointerEvent, useEffect, useRef, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 
 type Role = "student" | "teacher";
+type PageData = Record<string, string | boolean | number>;
+type PlannerStore = Record<number, PageData>;
 
-type PlannerData = {
-  mood: number;
-  liked: string;
-  difficult: string;
-  checked: boolean;
-  teacherComment: string;
-  photo: string;
-  drawing: string;
-};
+const pageTitles: Record<number, string> = {1:"Моя экспедиция к идее",2:"Сканирование локации",3:"Моё состояние и впечатления",4:"Путевой лист: Никола-Ленивец",5:"Рефлексия экспедиции"};
+const text=(data:PageData,key:string)=>String(data[key]??"");
+const checked=(data:PageData,key:string)=>Boolean(data[key]);
 
-const emptyData: PlannerData = {
-  mood: 7,
-  liked: "",
-  difficult: "",
-  checked: false,
-  teacherComment: "",
-  photo: "",
-  drawing: ""
-};
+function Field({label,value,readOnly,rows=2,onChange}:{label:string;value:string;readOnly:boolean;rows?:number;onChange:(v:string)=>void}){return <label className="field"><span>{label}</span><textarea rows={rows} value={value} readOnly={readOnly} onChange={e=>onChange(e.target.value)}/></label>}
+function Check({label,value,readOnly,onChange}:{label:string;value:boolean;readOnly:boolean;onChange:(v:boolean)=>void}){return <label className="check"><input type="checkbox" checked={value} disabled={readOnly} onChange={e=>onChange(e.target.checked)}/><span>{label}</span></label>}
 
-const pages = Array.from({ length: 38 }, (_, index) => index + 1);
+function PageOne({data,set,readOnly}:any){return <div className="sheet twoCol"><section><h2>Моя экспедиция к идее</h2><Field label="Название проекта/идеи" value={text(data,"projectName")} readOnly={readOnly} onChange={v=>set("projectName",v)}/><Field label="Первая мысль или искра для идеи" value={text(data,"spark")} readOnly={readOnly} rows={7} onChange={v=>set("spark",v)}/><h3>Этапы</h3><Field label="Что мы сделали?" value={text(data,"done")} readOnly={readOnly} onChange={v=>set("done",v)}/><Field label="Что получилось?" value={text(data,"success")} readOnly={readOnly} onChange={v=>set("success",v)}/><Field label="Что не получилось?" value={text(data,"failed")} readOnly={readOnly} onChange={v=>set("failed",v)}/></section><section><h2>Экипаж и роли</h2>{["Лидер","Аналитик","Маркетинг","Технолог"].map(x=><Check key={x} label={x} value={checked(data,x)} readOnly={readOnly} onChange={v=>set(x,v)}/>)}<Field label="Другое" value={text(data,"otherRole")} readOnly={readOnly} onChange={v=>set("otherRole",v)}/><Field label="Кто в команде и какую суперсилу привнёс" value={text(data,"team")} readOnly={readOnly} rows={5} onChange={v=>set("team",v)}/><Field label="Мне в этой роли было… потому что…" value={text(data,"roleFeeling")} readOnly={readOnly} onChange={v=>set("roleFeeling",v)}/><Field label="Хочу попробовать себя в роли" value={text(data,"tryRole")} readOnly={readOnly} onChange={v=>set("tryRole",v)}/></section></div>}
 
-export default function Home() {
-  const [role, setRole] = useState<Role | null>(null);
-  const [login, setLogin] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [data, setData] = useState<PlannerData>(emptyData);
-  const [saved, setSaved] = useState(false);
-  const [activePage, setActivePage] = useState(5);
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const drawingRef = useRef(false);
+function PageTwo({data,set,readOnly}:any){const statements=["Понятное название и ясная цель","Можем объяснить идею за 30 секунд","Каждый знает свою задачу","Понимаем, для кого проект","Есть первый макет или схема","Видим следующие 2–3 шага"];return <div className="sheet twoCol"><section><h2>Как я понимаю, что мы на правильном пути</h2>{statements.map((s,i)=><label className="rating" key={s}><span>{s}</span><select disabled={readOnly} value={text(data,"rate"+i)} onChange={e=>set("rate"+i,e.target.value)}><option value="">—</option><option>Пока нет</option><option>Частично</option><option>Да!</option></select></label>)}<Field label="Главный признак успеха для меня сейчас" value={text(data,"successSign")} readOnly={readOnly} onChange={v=>set("successSign",v)}/><h3>Опиши проектную инициативу</h3><Field label="Как называется проект?" value={text(data,"name")} readOnly={readOnly} onChange={v=>set("name",v)}/><Field label="В чём его суть?" value={text(data,"essence")} readOnly={readOnly} onChange={v=>set("essence",v)}/><Field label="Для кого он?" value={text(data,"audience")} readOnly={readOnly} onChange={v=>set("audience",v)}/><Field label="Главная фишка/технология" value={text(data,"feature")} readOnly={readOnly} onChange={v=>set("feature",v)}/></section><section><h2>Зона туманности</h2><Field label="Вопросы, на которые пока нет ответа" value={text(data,"questions")} readOnly={readOnly} rows={6} onChange={v=>set("questions",v)}/><Field label="Какие эксперты или помощь нужны?" value={text(data,"experts")} readOnly={readOnly} rows={5} onChange={v=>set("experts",v)}/><Field label="Главная сложность или риск" value={text(data,"risk")} readOnly={readOnly} rows={4} onChange={v=>set("risk",v)}/><Field label="Заметки" value={text(data,"notes")} readOnly={readOnly} rows={7} onChange={v=>set("notes",v)}/></section></div>}
 
-  useEffect(() => {
-    const stored = localStorage.getItem("mars-planner-page-5");
-    if (stored) setData({ ...emptyData, ...JSON.parse(stored) });
-  }, []);
+function PageThree({data,set,readOnly}:any){return <div className="sheet threeCol"><section className="span2"><h2>Блок связи с Землёй</h2><label className="field"><span>Моё настроение после интенсива</span><select disabled={readOnly} value={text(data,"mood")} onChange={e=>set("mood",e.target.value)}><option value="">Выбери</option><option>Вдохновлён</option><option>Доволен</option><option>Задумчив</option><option>Устал</option><option>Перегружен</option></select></label>{["Исследователь, открывающий новую планету","Инженер, у которого детали не стыкуются","Капитан, который видит цель"].map(x=><Check key={x} label={x} value={checked(data,x)} readOnly={readOnly} onChange={v=>set(x,v)}/>)}<Field label="Свой вариант" value={text(data,"selfImage")} readOnly={readOnly} onChange={v=>set("selfImage",v)}/><Field label="Что больше всего радует в замысле?" value={text(data,"joy")} readOnly={readOnly} rows={4} onChange={v=>set("joy",v)}/><Field label="Что вызывает беспокойство?" value={text(data,"worry")} readOnly={readOnly} rows={4} onChange={v=>set("worry",v)}/></section><section><h2>Список дел</h2>{[1,2,3].map(i=><Field key={i} label={`Шаг ${i}`} value={text(data,"task"+i)} readOnly={readOnly} onChange={v=>set("task"+i,v)}/>)}<Field label="Заметки" value={text(data,"notes")} readOnly={readOnly} rows={10} onChange={v=>set("notes",v)}/></section></div>}
 
-  useEffect(() => {
-    if (!role) return;
-    const timer = window.setTimeout(() => {
-      localStorage.setItem("mars-planner-page-5", JSON.stringify(data));
-      setSaved(true);
-      window.setTimeout(() => setSaved(false), 1200);
-    }, 500);
-    return () => window.clearTimeout(timer);
-  }, [data, role]);
+function PageFour({data,set,readOnly}:any){const goals=["Проверить выносливость и пройти весь маршрут","Увидеть ключевые арт-объекты и сделать фото","Применить проектные навыки","Провести время с командой"];const must=["Вселенский разум","Бобур","Маяк","Сарай-сарай","Белый мост"];return <div className="sheet twoCol"><section><h2>Моя роль и цель</h2><Field label="Моя роль в походе" value={text(data,"role")} readOnly={readOnly} onChange={v=>set("role",v)}/>{goals.map(x=><Check key={x} label={x} value={checked(data,x)} readOnly={readOnly} onChange={v=>set(x,v)}/>)}<Field label="Своя цель" value={text(data,"goal")} readOnly={readOnly} onChange={v=>set("goal",v)}/><Field label="Что я хочу наблюдать?" value={text(data,"observe")} readOnly={readOnly} rows={6} onChange={v=>set("observe",v)}/></section><section><h2>Штурманская папка</h2>{must.map(x=><Check key={x} label={x} value={checked(data,x)} readOnly={readOnly} onChange={v=>set(x,v)}/>)}<Field label="Другой объект" value={text(data,"otherObject")} readOnly={readOnly} onChange={v=>set("otherObject",v)}/><Field label="Допиши своё снаряжение" value={text(data,"gear")} readOnly={readOnly} onChange={v=>set("gear",v)}/><Field label="Я иду в группе" value={text(data,"group")} readOnly={readOnly} onChange={v=>set("group",v)}/><Field label="Моя тактика на маршруте" value={text(data,"tactics")} readOnly={readOnly} rows={5} onChange={v=>set("tactics",v)}/></section></div>}
 
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const context = canvas.getContext("2d");
-    if (!context) return;
-    context.lineWidth = 3;
-    context.lineCap = "round";
-    context.strokeStyle = "#173c31";
-    context.clearRect(0, 0, canvas.width, canvas.height);
-    if (data.drawing) {
-      const image = new Image();
-      image.onload = () => context.drawImage(image, 0, 0, canvas.width, canvas.height);
-      image.src = data.drawing;
-    }
-  }, [data.drawing, activePage]);
+function PageFive({data,set,readOnly}:any){const points=["Старт","Середина пути","Подъём/сложный участок","Привал","Финиш"];const body=["Приятная усталость","Полный упадок сил","Лёгкость и готовность идти ещё","Боль в мышцах","Голод/жажда"];return <div className="sheet twoCol"><section><h2>Карта моего состояния</h2>{points.map((x,i)=><label className="range" key={x}><span>{x}</span><input type="range" min="1" max="10" value={Number(data["state"+i]??5)} disabled={readOnly} onChange={e=>set("state"+i,Number(e.target.value))}/><b>{Number(data["state"+i]??5)}</b></label>)}<h3>Что тело чувствовало на финише?</h3>{body.map(x=><Check key={x} label={x} value={checked(data,x)} readOnly={readOnly} onChange={v=>set(x,v)}/>)}<Field label="Свой вариант" value={text(data,"bodyOther")} readOnly={readOnly} onChange={v=>set("bodyOther",v)}/><Field label="Моя роль в команде" value={text(data,"teamRole")} readOnly={readOnly} onChange={v=>set("teamRole",v)}/></section><section><h2>Самые яркие открытия</h2><Field label="Вид, который меня поразил — нарисуй или опиши" value={text(data,"view")} readOnly={readOnly} rows={7} onChange={v=>set("view",v)}/><Field label="Звук, который запомнился" value={text(data,"sound")} readOnly={readOnly} onChange={v=>set("sound",v)}/><Field label="Неожиданное наблюдение за собой" value={text(data,"observation")} readOnly={readOnly} rows={4} onChange={v=>set("observation",v)}/><Field label="Главный вывод о себе как о путешественнике" value={text(data,"conclusion")} readOnly={readOnly} rows={5} onChange={v=>set("conclusion",v)}/></section></div>}
 
-  function enter(event: FormEvent) {
-    event.preventDefault();
-    setError("");
-    if (login === "student" && password === "1234") setRole("student");
-    else if (login === "teacher" && password === "1234") setRole("teacher");
-    else setError("Проверьте логин и пароль");
-  }
-
-  function uploadPhoto(event: ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    if (file.size > 4_000_000) {
-      setError("Фотография слишком большая. Выберите файл до 4 МБ.");
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = () => setData((current) => ({ ...current, photo: String(reader.result) }));
-    reader.readAsDataURL(file);
-  }
-
-  function canvasPoint(event: PointerEvent<HTMLCanvasElement>) {
-    const canvas = canvasRef.current!;
-    const rect = canvas.getBoundingClientRect();
-    return {
-      x: (event.clientX - rect.left) * (canvas.width / rect.width),
-      y: (event.clientY - rect.top) * (canvas.height / rect.height)
-    };
-  }
-
-  function startDrawing(event: PointerEvent<HTMLCanvasElement>) {
-    if (role === "teacher") return;
-    const canvas = canvasRef.current;
-    const context = canvas?.getContext("2d");
-    if (!canvas || !context) return;
-    drawingRef.current = true;
-    canvas.setPointerCapture(event.pointerId);
-    const point = canvasPoint(event);
-    context.beginPath();
-    context.moveTo(point.x, point.y);
-  }
-
-  function draw(event: PointerEvent<HTMLCanvasElement>) {
-    if (!drawingRef.current || role === "teacher") return;
-    const context = canvasRef.current?.getContext("2d");
-    if (!context) return;
-    const point = canvasPoint(event);
-    context.lineTo(point.x, point.y);
-    context.stroke();
-  }
-
-  function stopDrawing() {
-    if (!drawingRef.current) return;
-    drawingRef.current = false;
-    const drawing = canvasRef.current?.toDataURL("image/png") || "";
-    setData((current) => ({ ...current, drawing }));
-  }
-
-  function clearDrawing() {
-    const context = canvasRef.current?.getContext("2d");
-    const canvas = canvasRef.current;
-    if (context && canvas) context.clearRect(0, 0, canvas.width, canvas.height);
-    setData((current) => ({ ...current, drawing: "" }));
-  }
-
-  if (!role) {
-    return (
-      <main className="loginScreen">
-        <section className="loginCard">
-          <div className="logo">МАРС</div>
-          <p className="eyebrow">ЦИФРОВАЯ ОБРАЗОВАТЕЛЬНАЯ СРЕДА</p>
-          <h1>Живая планёрка</h1>
-          <p className="lead">Рабочий прототип цифровой планёрки ученика.</p>
-          <form onSubmit={enter}>
-            <label>Логин<input value={login} onChange={(e) => setLogin(e.target.value)} placeholder="student или teacher" autoCapitalize="none" /></label>
-            <label>Пароль<input value={password} onChange={(e) => setPassword(e.target.value)} type="password" placeholder="1234" /></label>
-            {error && <p className="error">{error}</p>}
-            <button type="submit">Войти</button>
-          </form>
-          <div className="demo">Ученик: student / 1234<br />Педагог: teacher / 1234</div>
-        </section>
-      </main>
-    );
-  }
-
-  const readOnly = role === "teacher";
-
-  return (
-    <main className="appShell">
-      <header>
-        <div><strong>МАРС</strong><span>Живая планёрка</span></div>
-        <nav><span>{role === "student" ? "Ученик" : "Педагог"}</span><button onClick={() => setRole(null)}>Выйти</button></nav>
-      </header>
-
-      <div className="workspace">
-        <aside>
-          <p className="eyebrow">СОДЕРЖАНИЕ</p>
-          <h2>Моя планёрка</h2>
-          <div className="pageList">
-            {pages.map((page) => (
-              <button className={page === activePage ? "active" : ""} key={page} onClick={() => setActivePage(page)}>
-                <span>{page}</span>{page === 5 ? "Рефлексия экспедиции" : "Страница планёрки"}
-              </button>
-            ))}
-          </div>
-        </aside>
-
-        <section className="plannerPage">
-          <div className="mobilePagePicker">
-            <label>Страница
-              <select value={activePage} onChange={(e) => setActivePage(Number(e.target.value))}>
-                {pages.map((page) => <option key={page} value={page}>{page}</option>)}
-              </select>
-            </label>
-          </div>
-
-          {activePage !== 5 ? (
-            <section className="emptyPage">
-              <p className="eyebrow">СТРАНИЦА {activePage}</p>
-              <h1>Страница готовится</h1>
-              <p>Каркас всех 38 страниц уже добавлен. Сейчас полностью работает страница 5 — на ней мы проверяем все основные функции редактора.</p>
-              <button onClick={() => setActivePage(5)}>Открыть рабочую страницу 5</button>
-            </section>
-          ) : (
-            <>
-              <div className="pageTop">
-                <div><p className="eyebrow">СТРАНИЦА 5</p><h1>Рефлексия экспедиции</h1></div>
-                <span className={saved ? "save saved" : "save"}>{saved ? "Сохранено" : "Автосохранение"}</span>
-              </div>
-
-              <div className="paper">
-                <p className="date">Экспедиция «Никола-Ленивец»</p>
-                <h2>Как я чувствовал(а) себя во время экспедиции?</h2>
-                <div className="scaleLabels"><span>сложно</span><strong>{data.mood}/10</strong><span>отлично</span></div>
-                <input aria-label="Самочувствие" type="range" min="1" max="10" value={data.mood} disabled={readOnly} onChange={(e) => setData({ ...data, mood: Number(e.target.value) })} />
-
-                <label className="question">Что мне особенно понравилось?</label>
-                <textarea value={data.liked} readOnly={readOnly} onChange={(e) => setData({ ...data, liked: e.target.value })} placeholder="Напиши несколько предложений…" />
-
-                <label className="question">Что было трудным или неожиданным?</label>
-                <textarea value={data.difficult} readOnly={readOnly} onChange={(e) => setData({ ...data, difficult: e.target.value })} placeholder="Зафиксируй свои наблюдения…" />
-
-                <label className="checkRow">
-                  <input type="checkbox" checked={data.checked} disabled={readOnly} onChange={(e) => setData({ ...data, checked: e.target.checked })} />
-                  Я обсудил(а) впечатления с командой
-                </label>
-
-                <div className="mediaGrid">
-                  <section className="mediaCard">
-                    <div className="mediaTitle"><strong>Фотография</strong>{data.photo && !readOnly && <button onClick={() => setData({ ...data, photo: "" })}>Удалить</button>}</div>
-                    {data.photo ? <img src={data.photo} alt="Фотография ученика" /> : <div className="photoPlaceholder">Здесь появится фотография</div>}
-                    {!readOnly && <label className="uploadButton">Добавить фото<input type="file" accept="image/*" onChange={uploadPhoto} /></label>}
-                  </section>
-
-                  <section className="mediaCard">
-                    <div className="mediaTitle"><strong>Рисунок или схема</strong>{!readOnly && <button onClick={clearDrawing}>Очистить</button>}</div>
-                    <canvas ref={canvasRef} width={900} height={520} onPointerDown={startDrawing} onPointerMove={draw} onPointerUp={stopDrawing} onPointerCancel={stopDrawing} />
-                    <small>{readOnly ? "Рисунок ученика" : "Рисуй пальцем, стилусом или мышью"}</small>
-                  </section>
-                </div>
-              </div>
-
-              <section className="commentBox">
-                <p className="eyebrow">КОММЕНТАРИЙ ПЕДАГОГА</p>
-                {role === "teacher" ? (
-                  <textarea value={data.teacherComment} onChange={(e) => setData({ ...data, teacherComment: e.target.value })} placeholder="Оставьте поддерживающий комментарий ученику…" />
-                ) : (
-                  <p>{data.teacherComment || "Педагог пока не оставил комментарий."}</p>
-                )}
-              </section>
-            </>
-          )}
-        </section>
-      </div>
-    </main>
-  );
-}
+export default function Home(){const[role,setRole]=useState<Role|null>(null);const[login,setLogin]=useState("");const[password,setPassword]=useState("");const[error,setError]=useState("");const[page,setPage]=useState(1);const[store,setStore]=useState<PlannerStore>({});const[saved,setSaved]=useState(false);useEffect(()=>{const raw=localStorage.getItem("mars-planner-v2");if(raw)try{setStore(JSON.parse(raw))}catch{}},[]);useEffect(()=>{if(!role)return;const t=setTimeout(()=>{localStorage.setItem("mars-planner-v2",JSON.stringify(store));setSaved(true);setTimeout(()=>setSaved(false),1000)},450);return()=>clearTimeout(t)},[store,role]);function enter(e:FormEvent){e.preventDefault();if(login==="student"&&password==="1234")setRole("student");else if(login==="teacher"&&password==="1234")setRole("teacher");else setError("Проверьте логин и пароль")}if(!role)return <main className="loginScreen"><section className="loginCard"><div className="logo">МАРС</div><p className="eyebrow">ЦИФРОВАЯ ПЛАНЁРКА</p><h1>Живая планёрка</h1><p className="lead">Первые пять страниц уже перенесены в рабочий формат.</p><form onSubmit={enter}><label>Логин<input value={login} onChange={e=>setLogin(e.target.value)} placeholder="student или teacher"/></label><label>Пароль<input value={password} onChange={e=>setPassword(e.target.value)} type="password" placeholder="1234"/></label>{error&&<p className="error">{error}</p>}<button>Войти</button></form><div className="demo">Ученик: student / 1234<br/>Педагог: teacher / 1234</div></section></main>;const data=store[page]||{};const set=(key:string,value:any)=>setStore(s=>({...s,[page]:{...(s[page]||{}),[key]:value}}));const readOnly=role==="teacher";const content=page===1?<PageOne {...{data,set,readOnly}}/>:page===2?<PageTwo {...{data,set,readOnly}}/>:page===3?<PageThree {...{data,set,readOnly}}/>:page===4?<PageFour {...{data,set,readOnly}}/>:<PageFive {...{data,set,readOnly}}/>;return <main className="appShell"><header><div><strong>МАРС</strong><span>Живая планёрка</span></div><nav><span>{role==="student"?"Ученик":"Педагог"}</span><button onClick={()=>setRole(null)}>Выйти</button></nav></header><div className="workspace"><aside><p className="eyebrow">СОДЕРЖАНИЕ</p><h2>Страницы 1–5</h2>{Object.entries(pageTitles).map(([n,t])=><button className={page===Number(n)?"active":""} key={n} onClick={()=>setPage(Number(n))}><span>{n}</span>{t}</button>)}</aside><section className="plannerPage"><div className="pageTop"><div><p className="eyebrow">СТРАНИЦА {page} ИЗ 38</p><h1>{pageTitles[page]}</h1></div><span className={saved?"save saved":"save"}>{saved?"Сохранено":"Автосохранение"}</span></div>{content}<section className="commentBox"><p className="eyebrow">КОММЕНТАРИЙ ПЕДАГОГА</p>{role==="teacher"?<textarea value={text(data,"teacherComment")} onChange={e=>set("teacherComment",e.target.value)} placeholder="Поддерживающий комментарий ученику…"/>:<p>{text(data,"teacherComment")||"Педагог пока не оставил комментарий."}</p>}</section></section></div></main>}
