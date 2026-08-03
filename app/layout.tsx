@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import "./logo-fix.css";
 import CustomCheckboxFields from "./components/CustomCheckboxFields";
+import LoginRedirect from "./components/LoginRedirect";
 
 export const metadata: Metadata = {
   title: "Живая планёрка МАРС",
@@ -12,6 +13,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="ru">
       <body>
+        <LoginRedirect />
         <CustomCheckboxFields />
         {children}
       </body>
