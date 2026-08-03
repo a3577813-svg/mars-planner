@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import "./logo-fix.css";
+import CustomCheckboxFields from "./components/CustomCheckboxFields";
 
 export const metadata: Metadata = {
   title: "Живая планёрка МАРС",
@@ -10,7 +11,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="ru">
-      <body>{children}</body>
+      <body>
+        <CustomCheckboxFields />
+        {children}
+      </body>
     </html>
   );
 }
