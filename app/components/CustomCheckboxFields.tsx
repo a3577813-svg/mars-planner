@@ -2,7 +2,7 @@
 
 import {useEffect} from "react";
 
-const CUSTOM_OPTION_RE = /(?:^|\s)(?:свой|своя|своё|свое|свои|другой|другая|другое|другие|иной|иная|иное|иные)(?:\s+(?:вариант|способ|цель|роль|образ|идея|ответ|формат|пункт|варианты))?(?:\s|$|:)/i;
+const CUSTOM_OPTION_RE = /(?:^|\s)(?:(?:свой|своя|своё|свое|свои|другой|другая|другое|другие|иной|иная|иное|иные)(?:\s+(?:вариант|способ|цель|роль|образ|идея|ответ|формат|пункт|варианты))?|other(?:\s+(?:option|way|goal|role|image|idea|answer|format|item|evidence))?)(?:\s|$|:)/i;
 
 function normalize(value:string){return value.replace(/\s+/g," ").trim()}
 function keyFor(label:HTMLLabelElement,index:number,text:string){
@@ -27,8 +27,8 @@ export default function CustomCheckboxFields(){
         const input=document.createElement("input");
         input.type="text";
         input.className="customCheckboxText";
-        input.placeholder="Впиши свой вариант";
-        input.setAttribute("aria-label",`${text}: свой ответ`);
+        input.placeholder=/\bother\b/i.test(text)?"Write your option":"Впиши свой вариант";
+        input.setAttribute("aria-label",/\bother\b/i.test(text)?`${text}: your answer`:`${text}: свой ответ`);
         const storageKey=keyFor(label,index,text);
         input.value=localStorage.getItem(storageKey)||"";
 
