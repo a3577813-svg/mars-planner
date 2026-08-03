@@ -2,7 +2,7 @@
 
 import {useEffect} from "react";
 
-const CUSTOM_OPTION_RE = /(?:^|\s)(свой способ|свой вариант|своя цель|другое|другой вариант|другая роль|новая роль|свой образ)(?:\s|$|:)/i;
+const CUSTOM_OPTION_RE = /(?:^|\s)(?:свой|своя|своё|свое|свои|другой|другая|другое|другие|иной|иная|иное|иные)(?:\s+(?:вариант|способ|цель|роль|образ|идея|ответ|формат|пункт|варианты))?(?:\s|$|:)/i;
 
 function normalize(value:string){return value.replace(/\s+/g," ").trim()}
 function keyFor(label:HTMLLabelElement,index:number,text:string){
