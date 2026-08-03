@@ -6,16 +6,16 @@ const CUSTOM_OPTION_RE = /(?:^|\s)(свой способ|свой вариант
 
 function normalize(value:string){return value.replace(/\s+/g," ").trim()}
 function keyFor(label:HTMLLabelElement,index:number,text:string){
-  return `mars-custom-checkbox:${location.pathname}:${new URLSearchParams(location.search).get("page")||""}:${index}:${normalize(text).slice(0,80)}`;
+  return `mars-custom-option:${location.pathname}:${new URLSearchParams(location.search).get("page")||""}:${index}:${normalize(text).slice(0,80)}`;
 }
 
 export default function CustomCheckboxFields(){
   useEffect(()=>{
-    const enhanceCustomCheckboxes=()=>{
+    const enhanceCustomOptions=()=>{
       const labels=Array.from(document.querySelectorAll<HTMLLabelElement>("label"));
       labels.forEach((label,index)=>{
-        const checkbox=label.querySelector<HTMLInputElement>('input[type="checkbox"]');
-        if(!checkbox||label.dataset.customCheckboxEnhanced==="1")return;
+        const option=label.querySelector<HTMLInputElement>('input[type="checkbox"],input[type="radio"]');
+        if(!option||label.dataset.customCheckboxEnhanced==="1")return;
 
         const caption=label.querySelector("span")?.textContent||label.textContent||"";
         const text=normalize(caption);
@@ -31,19 +31,25 @@ export default function CustomCheckboxFields(){
         input.setAttribute("aria-label",`${text}: свой ответ`);
         const storageKey=keyFor(label,index,text);
         input.value=localStorage.getItem(storageKey)||"";
-        input.disabled=!checkbox.checked;
 
         const sync=()=>{
-          input.disabled=!checkbox.checked;
-          if(checkbox.checked)requestAnimationFrame(()=>input.focus());
+          input.disabled=!option.checked;
+          if(option.checked)requestAnimationFrame(()=>input.focus());
         };
-        checkbox.addEventListener("change",sync);
-        checkbox.addEventListener("click",()=>requestAnimationFrame(sync));
+
+        option.addEventListener("change",sync);
+        option.addEventListener("click",()=>requestAnimationFrame(sync));
+        if(option.type==="radio"&&option.name){
+          document.querySelectorAll<HTMLInputElement>(`input[type="radio"][name="${CSS.escape(option.name)}"]`).forEach(radio=>{
+            if(radio!==option)radio.addEventListener("change",sync);
+          });
+        }
         input.addEventListener("input",()=>localStorage.setItem(storageKey,input.value));
         input.addEventListener("click",event=>event.stopPropagation());
         input.addEventListener("pointerdown",event=>event.stopPropagation());
 
         label.appendChild(input);
+        sync();
       });
     };
 
@@ -77,7 +83,7 @@ export default function CustomCheckboxFields(){
     };
 
     const enhance=()=>{
-      enhanceCustomCheckboxes();
+      enhanceCustomOptions();
       enhanceSpreadTwoScale();
     };
 
