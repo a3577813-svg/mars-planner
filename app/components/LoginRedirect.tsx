@@ -11,13 +11,14 @@ export default function LoginRedirect(){
       if(!(form instanceof HTMLFormElement))return;
       const loginInput=form.querySelector<HTMLInputElement>('input:not([type="password"])');
       const passwordInput=form.querySelector<HTMLInputElement>('input[type="password"]');
-      if(loginInput?.value.trim()!=="student7"||passwordInput?.value!=="1234")return;
+      const login=loginInput?.value.trim();
+      if(passwordInput?.value!=="1234"||(login!=="student7"&&login!=="student8"))return;
 
       event.preventDefault();
       event.stopPropagation();
       event.stopImmediatePropagation();
-      localStorage.setItem("mars-active-account","student7");
-      location.assign("/student");
+      localStorage.setItem("mars-active-account",login);
+      location.assign(login==="student8"?"/senior/book?page=1":"/student");
     };
 
     document.addEventListener("submit",onSubmit,true);
