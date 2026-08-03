@@ -9,6 +9,45 @@ function keyFor(label:HTMLLabelElement,index:number,text:string){
   return `mars-custom-option:${location.pathname}:${new URLSearchParams(location.search).get("page")||""}:${index}:${normalize(text).slice(0,80)}`;
 }
 
+function juniorHref(page:number){
+  if(page<=12)return `/book?page=${page}&mode=student`;
+  if(page<=15)return `/book-next?page=${page}&mode=student`;
+  if(page<=18)return `/book-next2?page=${page}&mode=student`;
+  if(page<=21)return `/book-next3?page=${page}&mode=student`;
+  if(page<=24)return `/book-next4?page=${page}&mode=student`;
+  if(page<=27)return `/book-next5?page=${page}&mode=student`;
+  if(page<=30)return `/book-next6?page=${page}&mode=student`;
+  if(page<=33)return `/book-next7?page=${page}&mode=student`;
+  if(page<=36)return `/book-next8?page=${page}&mode=student`;
+  return `/book-next9?page=${page}&mode=student`;
+}
+
+function seniorHref(page:number){
+  if(page<=28)return `${juniorHref(page)}&senior=1`;
+  if(page<=31)return `/senior/unique?page=${page}`;
+  if(page<=34)return `/senior/unique2?page=${page}`;
+  if(page<=37)return `/senior/unique3?page=${page}`;
+  if(page<=40)return `/senior/unique4?page=${page}`;
+  if(page<=43)return `/senior/unique5?page=${page}`;
+  if(page===44)return `/book-next9?page=37&mode=student&senior=1`;
+  return `/book-next9?page=38&mode=student&senior=1`;
+}
+
+function plannerContext(){
+  const params=new URLSearchParams(location.search);
+  const isSenior=location.pathname.startsWith("/senior/unique")||params.get("senior")==="1";
+  const isPlanner=location.pathname.startsWith("/book")||location.pathname.startsWith("/senior/unique");
+  if(!isPlanner)return null;
+  let page=Number(params.get("page")||0);
+  if(isSenior&&location.pathname==="/book-next9"&&params.get("senior")==="1"){
+    if(page===37)page=44;
+    if(page===38)page=45;
+  }
+  const total=isSenior?45:38;
+  if(!page||page<1||page>total)return null;
+  return {page,total,isSenior};
+}
+
 export default function CustomCheckboxFields(){
   useEffect(()=>{
     const enhanceCustomOptions=()=>{
@@ -82,16 +121,48 @@ export default function CustomCheckboxFields(){
       });
     };
 
+    const enhanceNextButtons=()=>{
+      const context=plannerContext();
+      if(!context)return;
+      const controls=Array.from(document.querySelectorAll<HTMLElement>("button,a"));
+      controls.forEach(control=>{
+        const text=normalize(control.textContent||"").toLowerCase();
+        if(!text.includes("следующий")&&!text.includes("next"))return;
+        const isLast=context.page>=context.total;
+        if(control instanceof HTMLButtonElement)control.disabled=isLast;
+        control.setAttribute("aria-disabled",isLast?"true":"false");
+        control.classList.toggle("plannerNextDisabled",isLast);
+        if(!isLast)control.dataset.plannerNext="1";
+        else delete control.dataset.plannerNext;
+      });
+    };
+
+    const handleNext=(event:MouseEvent)=>{
+      const target=(event.target as HTMLElement|null)?.closest<HTMLElement>("button,a");
+      if(!target||target.dataset.plannerNext!=="1")return;
+      const context=plannerContext();
+      if(!context||context.page>=context.total)return;
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+      const next=context.page+1;
+      if(context.isSenior)localStorage.setItem("mars-senior-current-page",String(next));
+      else localStorage.setItem("mars-book-current-page",String(next));
+      location.href=context.isSenior?seniorHref(next):juniorHref(next);
+    };
+
     const enhance=()=>{
       enhanceCustomOptions();
       enhanceSpreadTwoScale();
+      enhanceNextButtons();
     };
 
     enhance();
     const observer=new MutationObserver(()=>requestAnimationFrame(enhance));
     observer.observe(document.body,{childList:true,subtree:true});
+    document.addEventListener("click",handleNext,true);
     window.addEventListener("popstate",enhance);
-    return()=>{observer.disconnect();window.removeEventListener("popstate",enhance)};
+    return()=>{observer.disconnect();document.removeEventListener("click",handleNext,true);window.removeEventListener("popstate",enhance)};
   },[]);
 
   return <style jsx global>{`
@@ -105,6 +176,8 @@ export default function CustomCheckboxFields(){
     .scaleColumnHeader{display:grid;grid-template-columns:1.25fr 1fr;gap:8px;align-items:end;margin:5px 0 2px}
     .scaleColumnHeader>div{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
     .scaleColumnHeader b{padding:6px 4px;border-radius:7px;background:#f2ecfa;color:#5c2eb3;text-align:center;font-size:11px;line-height:1.15}
+    [data-planner-next="1"]{opacity:1!important;cursor:pointer!important;pointer-events:auto!important}
+    .plannerNextDisabled{opacity:.35!important;cursor:not-allowed!important;pointer-events:none!important}
     @media(max-width:980px){.scaleColumnHeader{grid-template-columns:1fr}.scaleColumnHeader>span{display:none}}
     @media(max-width:650px){.customCheckboxText{flex-basis:100%;margin-left:25px}.compactNote{max-width:100%!important}.scaleColumnHeader b{font-size:10px;padding:5px 2px}}
   `}</style>;
