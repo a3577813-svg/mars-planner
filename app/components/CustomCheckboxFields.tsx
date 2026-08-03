@@ -2,13 +2,11 @@
 
 import {useEffect} from "react";
 
-const CUSTOM_OPTION_RE = /^(свой способ|свой вариант|своя цель|другое|другой вариант|другая роль|новая роль|свой образ)/i;
+const CUSTOM_OPTION_RE = /(?:^|\s)(свой способ|свой вариант|своя цель|другое|другой вариант|другая роль|новая роль|свой образ)(?:\s|$|:)/i;
 
 function normalize(value:string){return value.replace(/\s+/g," ").trim()}
-function optionText(value:string){return normalize(value).replace(/^[^\p{L}\p{N}]+/u,"")}
-function keyFor(label:HTMLLabelElement,index:number){
-  const text=normalize(label.innerText).slice(0,80);
-  return `mars-custom-checkbox:${location.pathname}:${new URLSearchParams(location.search).get("page")||""}:${index}:${text}`;
+function keyFor(label:HTMLLabelElement,index:number,text:string){
+  return `mars-custom-checkbox:${location.pathname}:${new URLSearchParams(location.search).get("page")||""}:${index}:${normalize(text).slice(0,80)}`;
 }
 
 export default function CustomCheckboxFields(){
@@ -18,8 +16,10 @@ export default function CustomCheckboxFields(){
       labels.forEach((label,index)=>{
         const checkbox=label.querySelector<HTMLInputElement>('input[type="checkbox"]');
         if(!checkbox||label.dataset.customCheckboxEnhanced==="1")return;
-        const text=normalize(label.innerText);
-        if(!CUSTOM_OPTION_RE.test(optionText(text)))return;
+
+        const caption=label.querySelector("span")?.textContent||label.textContent||"";
+        const text=normalize(caption);
+        if(!CUSTOM_OPTION_RE.test(text))return;
 
         label.dataset.customCheckboxEnhanced="1";
         label.classList.add("customCheckboxOption");
@@ -29,16 +29,19 @@ export default function CustomCheckboxFields(){
         input.className="customCheckboxText";
         input.placeholder="Впиши свой вариант";
         input.setAttribute("aria-label",`${text}: свой ответ`);
-        const storageKey=keyFor(label,index);
+        const storageKey=keyFor(label,index,text);
         input.value=localStorage.getItem(storageKey)||"";
         input.disabled=!checkbox.checked;
 
-        checkbox.addEventListener("change",()=>{
+        const sync=()=>{
           input.disabled=!checkbox.checked;
           if(checkbox.checked)requestAnimationFrame(()=>input.focus());
-        });
+        };
+        checkbox.addEventListener("change",sync);
+        checkbox.addEventListener("click",()=>requestAnimationFrame(sync));
         input.addEventListener("input",()=>localStorage.setItem(storageKey,input.value));
         input.addEventListener("click",event=>event.stopPropagation());
+        input.addEventListener("pointerdown",event=>event.stopPropagation());
 
         label.appendChild(input);
       });
@@ -47,7 +50,8 @@ export default function CustomCheckboxFields(){
     enhance();
     const observer=new MutationObserver(()=>requestAnimationFrame(enhance));
     observer.observe(document.body,{childList:true,subtree:true});
-    return()=>observer.disconnect();
+    window.addEventListener("popstate",enhance);
+    return()=>{observer.disconnect();window.removeEventListener("popstate",enhance)};
   },[]);
 
   return <style jsx global>{`
