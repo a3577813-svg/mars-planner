@@ -2,110 +2,37 @@
 
 import {ReactNode,useEffect,useMemo,useState} from "react";
 
+type BookMode="student"|"teacher"|"admin"|"view";
 type EditableBlock={index:number;title:string;text:string};
 
-const selector=[
-  ".miniNote",
-  ".sourceCard",
-  ".quoteCard",
-  ".storyCard",
-  ".callout",
-  ".smartQuote",
-  ".bottomQuote"
-].join(",");
+const selector=[".miniNote",".sourceCard",".quoteCard",".storyCard",".callout",".smartQuote",".bottomQuote",".compactNote"].join(",");
+const labels:Record<BookMode,string>={student:"Ученик",teacher:"Педагог",admin:"Администратор-методист",view:"Только просмотр"};
 
-function currentPage(){
-  if(typeof window==="undefined")return 1;
-  return Number(new URLSearchParams(window.location.search).get("page")||localStorage.getItem("mars-book-current-page")||"1")||1;
-}
-
-function storageKey(page:number,index:number,field:"title"|"text"){
-  return `mars-book-callout-p${page}-${index}-${field}`;
-}
-
-function collectBlocks():EditableBlock[]{
-  if(typeof document==="undefined")return [];
-  return Array.from(document.querySelectorAll<HTMLElement>(selector)).map((node,index)=>{
-    const titleNode=node.querySelector<HTMLElement>("b,strong,h3,h4");
-    const textNode=node.querySelector<HTMLElement>("p")||node;
-    return {index,title:titleNode?.innerText.trim()||"",text:textNode.innerText.trim()};
-  });
-}
-
-function applyOverrides(){
-  const page=currentPage();
-  const nodes=Array.from(document.querySelectorAll<HTMLElement>(selector));
-  nodes.forEach((node,index)=>{
-    node.classList.add("marsCompactCallout");
-    const titleNode=node.querySelector<HTMLElement>("b,strong,h3,h4");
-    const textNode=node.querySelector<HTMLElement>("p")||node;
-    const title=localStorage.getItem(storageKey(page,index,"title"));
-    const text=localStorage.getItem(storageKey(page,index,"text"));
-    if(title!==null&&titleNode)titleNode.innerText=title;
-    if(text!==null)textNode.innerText=text;
-  });
-}
+function currentPage(){if(typeof window==="undefined")return 1;return Number(new URLSearchParams(window.location.search).get("page")||localStorage.getItem("mars-book-current-page")||"1")||1}
+function storageKey(page:number,index:number,field:"title"|"text"){return `mars-book-callout-p${page}-${index}-${field}`}
+function collectBlocks():EditableBlock[]{if(typeof document==="undefined")return[];return Array.from(document.querySelectorAll<HTMLElement>(selector)).map((node,index)=>{const titleNode=node.querySelector<HTMLElement>("b,strong,h3,h4");const textNode=node.querySelector<HTMLElement>("p")||node;return{index,title:titleNode?.innerText.trim()||"",text:textNode.innerText.trim()}})}
+function applyOverrides(){const page=currentPage();const nodes=Array.from(document.querySelectorAll<HTMLElement>(selector));nodes.forEach((node,index)=>{node.classList.add("marsCompactCallout");const titleNode=node.querySelector<HTMLElement>("b,strong,h3,h4");const textNode=node.querySelector<HTMLElement>("p")||node;const title=localStorage.getItem(storageKey(page,index,"title"));const text=localStorage.getItem(storageKey(page,index,"text"));if(title!==null&&titleNode)titleNode.innerText=title;if(text!==null)textNode.innerText=text})}
 
 export default function BookLayout({children}:{children:ReactNode}){
-  const[admin,setAdmin]=useState(false);
-  const[open,setOpen]=useState(false);
-  const[page,setPage]=useState(1);
-  const[blocks,setBlocks]=useState<EditableBlock[]>([]);
-
-  useEffect(()=>{
-    const params=new URLSearchParams(window.location.search);
-    setAdmin(params.get("admin")==="1"||localStorage.getItem("mars-admin-mode")==="1");
-    const refresh=()=>{
-      const next=currentPage();
-      setPage(next);
-      applyOverrides();
-      setBlocks(collectBlocks());
-    };
-    refresh();
-    const observer=new MutationObserver(()=>requestAnimationFrame(refresh));
-    observer.observe(document.body,{childList:true,subtree:true});
-    const timer=window.setInterval(refresh,700);
-    window.addEventListener("popstate",refresh);
-    return()=>{observer.disconnect();window.clearInterval(timer);window.removeEventListener("popstate",refresh)};
-  },[]);
-
-  const editable=useMemo(()=>blocks,[blocks]);
-
-  function save(index:number,field:"title"|"text",value:string){
-    localStorage.setItem(storageKey(page,index,field),value);
-    setBlocks(list=>list.map(item=>item.index===index?{...item,[field]:value}:item));
-    requestAnimationFrame(applyOverrides);
-  }
-
-  return <>
-    {children}
-    {admin&&<>
-      <button className="marsAdminEditButton" onClick={()=>setOpen(true)}>Редактировать тексты</button>
-      {open&&<div className="marsAdminOverlay" onClick={()=>setOpen(false)}>
-        <aside className="marsAdminPanel" onClick={e=>e.stopPropagation()}>
-          <div className="marsAdminHeader"><div><b>Редактор разворота</b><span>Разворот {page}</span></div><button onClick={()=>setOpen(false)}>×</button></div>
-          <p className="marsAdminHint">Можно менять только заголовки и тексты уже существующих плашек. Их количество, цвет и расположение остаются такими же, как в планёрке.</p>
-          {editable.length===0?<p>На этом развороте нет текстовых плашек.</p>:editable.map(block=><section className="marsAdminBlock" key={block.index}>
-            <label>Заголовок<input value={block.title} onChange={e=>save(block.index,"title",e.target.value)}/></label>
-            <label>Текст<textarea rows={5} value={block.text} onChange={e=>save(block.index,"text",e.target.value)}/></label>
-          </section>)}
-        </aside>
-      </div>}
-    </>;
-}
-
-const css=`
-.marsCompactCallout{height:auto!important;min-height:0!important;max-height:none!important;align-self:start!important;justify-self:stretch!important;overflow:visible!important;padding:9px 11px!important;margin-top:10px!important;margin-bottom:10px!important}
-.marsCompactCallout p{margin:4px 0 0!important;line-height:1.35!important}
-.marsCompactCallout b,.marsCompactCallout strong,.marsCompactCallout h3,.marsCompactCallout h4{margin:0!important}
-.marsAdminEditButton{position:fixed;right:22px;bottom:22px;z-index:60;border:0;border-radius:14px;background:#5b2bb7;color:white;padding:13px 17px;font-weight:800;box-shadow:0 14px 34px #3d22613d}
-.marsAdminOverlay{position:fixed;inset:0;background:#241a3147;z-index:80;display:flex;justify-content:flex-end}
-.marsAdminPanel{width:min(430px,94vw);height:100%;overflow:auto;background:#fff;padding:22px;box-shadow:-20px 0 50px #241a3130}
-.marsAdminHeader{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:1px solid #ece5f2;padding-bottom:14px;margin-bottom:14px}.marsAdminHeader div{display:grid;gap:3px}.marsAdminHeader b{font-size:21px;color:#42216f}.marsAdminHeader span{font-size:12px;color:#857b8e}.marsAdminHeader button{border:0;background:#f1ebf8;color:#5a2bac;width:34px;height:34px;border-radius:10px;font-size:22px}
-.marsAdminHint{font-size:13px;line-height:1.45;color:#716878;background:#f7f3fb;padding:12px;border-radius:12px}
-.marsAdminBlock{border:1px solid #e9e1ef;border-radius:16px;padding:14px;margin:12px 0;background:#fdfcfe}.marsAdminBlock label{display:grid;gap:6px;margin:8px 0;font-size:12px;font-weight:800;color:#5a5261}.marsAdminBlock input,.marsAdminBlock textarea{width:100%;border:1px solid #d9cfe2;border-radius:10px;padding:10px;font:14px/1.4 Inter,Arial,sans-serif;color:#282130;background:white}.marsAdminBlock textarea{resize:vertical}
-`;
-
-if(typeof document!=="undefined"&&!document.getElementById("mars-book-layout-css")){
-  const style=document.createElement("style");style.id="mars-book-layout-css";style.textContent=css;document.head.appendChild(style);
+ const[mode,setMode]=useState<BookMode>("student"),[preview,setPreview]=useState(false),[open,setOpen]=useState(false),[page,setPage]=useState(1),[blocks,setBlocks]=useState<EditableBlock[]>([]),[teacherComment,setTeacherComment]=useState("");
+ useEffect(()=>{const params=new URLSearchParams(window.location.search);const raw=params.get("mode") as BookMode|null;const next:BookMode=raw&&["student","teacher","admin","view"].includes(raw)?raw:(params.get("admin")==="1"?"admin":"student");setMode(next);const refresh=()=>{setPage(currentPage());applyOverrides();setBlocks(collectBlocks())};refresh();const observer=new MutationObserver(()=>requestAnimationFrame(refresh));observer.observe(document.body,{childList:true,subtree:true});const timer=window.setInterval(refresh,700);window.addEventListener("popstate",refresh);return()=>{observer.disconnect();window.clearInterval(timer);window.removeEventListener("popstate",refresh)}},[]);
+ const effectiveMode:BookMode=preview?"view":mode;const editable=useMemo(()=>blocks,[blocks]);
+ useEffect(()=>{document.documentElement.dataset.bookMode=effectiveMode;const saved=localStorage.getItem(`mars-teacher-comment-p${page}`)||"";setTeacherComment(saved);return()=>{delete document.documentElement.dataset.bookMode}},[effectiveMode,page]);
+ function save(index:number,field:"title"|"text",value:string){localStorage.setItem(storageKey(page,index,field),value);setBlocks(list=>list.map(item=>item.index===index?{...item,[field]:value}:item));requestAnimationFrame(applyOverrides)}
+ function saveTeacherComment(){localStorage.setItem(`mars-teacher-comment-p${page}`,teacherComment)}
+ return <>
+  <div className={`roleModeBar role-${effectiveMode}`}><strong>{labels[effectiveMode]}</strong>{effectiveMode==="teacher"&&<span>Ответы ученика доступны только для чтения. Педагог работает с комментариями.</span>}{effectiveMode==="admin"&&<span>Управление содержанием, назначениями и сроками.</span>}{effectiveMode==="view"&&<span>Режим чтения без возможности внесения изменений.</span>}{(mode==="teacher"||mode==="admin")&&<button onClick={()=>setPreview(x=>!x)}>{preview?"Вернуться в рабочий режим":"Посмотреть глазами ученика"}</button>}</div>
+  <div className={effectiveMode==="student"?"bookEditable":"bookReadOnly"}>{children}</div>
+  {mode==="teacher"&&!preview&&<aside className="roleSidePanel teacherPanel"><h3>Сопровождение ученика</h3><p>Комментарий относится к текущему развороту.</p><textarea value={teacherComment} onChange={e=>setTeacherComment(e.target.value)} placeholder="Комментарий педагога…"/><button onClick={saveTeacherComment}>Сохранить комментарий</button><button className="secondary">Отметить проверенным</button></aside>}
+  {mode==="admin"&&!preview&&<><button className="marsAdminEditButton" onClick={()=>setOpen(true)}>Редактировать тексты</button><aside className="roleSidePanel adminPanel"><h3>Администратор-методист</h3><button onClick={()=>setOpen(true)}>Заголовки и тексты плашек</button><a href="/admin/assignments">Назначить развороты и сроки</a><p>Структура и оформление разворота остаются неизменными.</p></aside></>}
+  {open&&mode==="admin"&&<div className="marsAdminOverlay" onClick={()=>setOpen(false)}><aside className="marsAdminPanel" onClick={e=>e.stopPropagation()}><div className="marsAdminHeader"><div><b>Редактор разворота</b><span>Разворот {page}</span></div><button onClick={()=>setOpen(false)}>×</button></div><p className="marsAdminHint">Можно менять только заголовки и тексты уже существующих плашек. Их количество, цвет и расположение остаются такими же, как в PDF.</p>{editable.length===0?<p>На этом развороте нет текстовых плашек.</p>:editable.map(block=><section className="marsAdminBlock" key={block.index}><label>Заголовок<input value={block.title} onChange={e=>save(block.index,"title",e.target.value)}/></label><label>Текст<textarea rows={4} value={block.text} onChange={e=>save(block.index,"text",e.target.value)}/></label></section>)}</aside></div>}
+  <style jsx global>{`
+   .roleModeBar{position:sticky;top:0;z-index:70;min-height:42px;padding:7px 18px;display:flex;align-items:center;gap:14px;background:#2f2450;color:#fff;font:13px/1.3 Inter,Arial,sans-serif;box-shadow:0 4px 14px #241a3a26}.roleModeBar strong{white-space:nowrap}.roleModeBar span{opacity:.84}.roleModeBar button{margin-left:auto;border:1px solid #ffffff70;background:#ffffff14;color:#fff;border-radius:9px;padding:7px 11px;font-weight:800}.role-student{display:none}.role-teacher{background:#315f57}.role-admin{background:#5b2c91}.role-view{background:#55505d}
+   .bookReadOnly textarea,.bookReadOnly input,.bookReadOnly select,.bookReadOnly .linedField{pointer-events:none}.bookReadOnly textarea{color:#2a2233;-webkit-text-fill-color:#2a2233;opacity:1}
+   .marsCompactCallout{height:auto!important;min-height:0!important;max-height:none!important;align-self:start!important;justify-self:start!important;width:auto!important;max-width:100%!important;overflow:visible!important;padding:7px 10px!important;margin:8px 0!important;display:inline-block!important}.marsCompactCallout p{margin:3px 0 0!important;line-height:1.32!important}.marsCompactCallout b,.marsCompactCallout strong,.marsCompactCallout h3,.marsCompactCallout h4{margin:0!important}
+   .roleSidePanel{position:fixed;right:18px;top:128px;z-index:58;width:300px;max-height:calc(100vh - 150px);overflow:auto;background:#fff;border:1px solid #ddd5e7;border-radius:16px;padding:18px;box-shadow:0 20px 50px #2d203b2d;font:14px/1.45 Inter,Arial,sans-serif}.roleSidePanel h3{margin:0 0 10px;color:#4e278a}.roleSidePanel p{color:#665e6c}.roleSidePanel textarea{width:100%;min-height:130px;border:1px solid #cdc3d8;border-radius:10px;padding:10px;resize:vertical}.roleSidePanel button,.roleSidePanel a{display:block;width:100%;border:0;border-radius:10px;padding:10px 12px;background:#642db0;color:#fff;text-align:center;text-decoration:none;font-weight:800;cursor:pointer;margin-top:8px}.roleSidePanel .secondary{background:#eee8f5;color:#542591}
+   html[data-book-mode="teacher"] .bookFrame,html[data-book-mode="admin"] .bookFrame{padding-right:338px}.marsAdminEditButton{position:fixed;right:22px;bottom:22px;z-index:60;border:0;border-radius:14px;background:#5b2bb7;color:white;padding:13px 17px;font-weight:800;box-shadow:0 14px 34px #3d22613d}.marsAdminOverlay{position:fixed;inset:0;background:#241a3147;z-index:80;display:flex;justify-content:flex-end}.marsAdminPanel{width:min(430px,94vw);height:100%;overflow:auto;background:#fff;padding:22px;box-shadow:-20px 0 50px #241a3130}.marsAdminHeader{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:1px solid #ece5f2;padding-bottom:14px;margin-bottom:14px}.marsAdminHeader div{display:grid;gap:3px}.marsAdminHeader b{font-size:21px;color:#42216f}.marsAdminHeader span{font-size:12px;color:#857b8e}.marsAdminHeader button{border:0;background:#f1ebf8;color:#5a2bac;width:34px;height:34px;border-radius:10px;font-size:22px}.marsAdminHint{font-size:13px;line-height:1.45;color:#716878;background:#f7f3fb;padding:12px;border-radius:12px}.marsAdminBlock{border:1px solid #e9e1ef;border-radius:16px;padding:14px;margin:12px 0;background:#fdfcfe}.marsAdminBlock label{display:grid;gap:6px;margin:8px 0;font-size:12px;font-weight:800;color:#5a5261}.marsAdminBlock input,.marsAdminBlock textarea{width:100%;border:1px solid #d9cfe2;border-radius:10px;padding:10px;font:14px/1.4 Inter,Arial,sans-serif;color:#282130;background:white}.marsAdminBlock textarea{resize:vertical}
+   @media(max-width:1100px){.roleSidePanel{position:static;width:auto;margin:12px}.roleModeBar span{display:none}html[data-book-mode="teacher"] .bookFrame,html[data-book-mode="admin"] .bookFrame{padding-right:12px}}@media(max-width:650px){.roleModeBar{padding:6px 10px}.roleModeBar button{font-size:11px;padding:6px 8px}}
+  `}</style>
+ </>;
 }
