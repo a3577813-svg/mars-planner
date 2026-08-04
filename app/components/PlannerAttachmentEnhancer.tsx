@@ -12,6 +12,7 @@ type Rule={
   targetText?:string;
   pageSide?:"left"|"right";
   allowDrawing?:boolean;
+  placement?:"after"|"inside";
 };
 
 const rules:Rule[]=[
@@ -24,7 +25,7 @@ const rules:Rule[]=[
   {path:"/book-next",page:"15",id:"middle-p15-map",title:"Наглядная карта",targetText:"Нарисуй наглядную карту",allowDrawing:true},
   {path:"/book-next2",page:"16",id:"middle-p16-drawing",title:"Место для рисунка",targetText:"Место для рисунка",allowDrawing:true},
   {path:"/book-next3",page:"21",id:"middle-p21-project-talk",title:"Фото выступлений с проектом",pageSide:"right",allowDrawing:false},
-  {path:"/book-next6",page:"28",id:"middle-p28-free-space",title:"Фото или изображение для свободного пространства",targetText:"Свободное пространство",allowDrawing:true},
+  {path:"/book-next6",page:"28",id:"middle-p28-free-space",title:"Фото или изображение для свободного пространства",targetText:"Свободное пространство",allowDrawing:true,placement:"inside"},
   {path:"/book-next6",page:"30",id:"middle-p30-project-talks",title:"Фото с выступлений с проектами",pageSide:"left",allowDrawing:false},
   {path:"/book-next8",page:"36",id:"middle-p36-sketches",title:"Скетчи макетов",targetText:"Скетчи макетов",allowDrawing:true},
   {path:"/book-next9",page:"38",id:"middle-p38-game-photos",title:"Фотографии с игры",pageSide:"right",allowDrawing:false}
@@ -57,7 +58,16 @@ function mountRule(rule:Rule){
   const mount=document.createElement("div");
   mount.id=mountId;
   mount.className="attachmentMount";
-  if(rule.targetText)host.insertAdjacentElement("afterend",mount);else host.appendChild(mount);
+
+  if(rule.placement==="inside"){
+    const textarea=host.querySelector("textarea");
+    if(textarea)textarea.insertAdjacentElement("beforebegin",mount);
+    else host.appendChild(mount);
+  }else if(rule.targetText){
+    host.insertAdjacentElement("afterend",mount);
+  }else{
+    host.appendChild(mount);
+  }
 
   const root=createRoot(mount);
   roots.set(mount,root);
