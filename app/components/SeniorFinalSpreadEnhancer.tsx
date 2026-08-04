@@ -18,6 +18,10 @@ export default function SeniorFinalSpreadEnhancer(){
       const metaFirst=document.querySelector<HTMLElement>("header .meta span:first-child");
       if(metaFirst)metaFirst.textContent=`Разворот ${seniorPage} из 45`;
 
+      // Номер, напечатанный непосредственно на левой странице разворота.
+      const spreadNumber=document.querySelector<HTMLElement>("article.page.left .num");
+      if(spreadNumber)spreadNumber.textContent=String(seniorPage).padStart(2,"0");
+
       const routeLink=document.querySelector<HTMLAnchorElement>("header>a");
       if(routeLink){routeLink.href="/senior";routeLink.textContent="← К моему маршруту";}
 
