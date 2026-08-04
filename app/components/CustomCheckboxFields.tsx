@@ -121,48 +121,77 @@ export default function CustomCheckboxFields(){
       });
     };
 
-    const enhanceNextButtons=()=>{
+    const enhancePlannerNavigation=()=>{
       const context=plannerContext();
       if(!context)return;
       const controls=Array.from(document.querySelectorAll<HTMLElement>("button,a"));
       controls.forEach(control=>{
         const text=normalize(control.textContent||"").toLowerCase();
-        if(!text.includes("следующий")&&!text.includes("next"))return;
-        const isLast=context.page>=context.total;
-        if(control instanceof HTMLButtonElement)control.disabled=isLast;
-        control.setAttribute("aria-disabled",isLast?"true":"false");
-        control.classList.toggle("plannerNextDisabled",isLast);
-        if(!isLast)control.dataset.plannerNext="1";
-        else delete control.dataset.plannerNext;
+        const isNext=text.includes("следующий")||text==="next"||text.includes("next →");
+        const isPrevious=text.includes("предыдущий")||text.includes("previous");
+        const isRouteLink=text.includes("к моему маршруту")||text.includes("к маршруту");
+
+        if(isNext){
+          const isLast=context.page>=context.total;
+          if(control instanceof HTMLButtonElement)control.disabled=isLast;
+          control.setAttribute("aria-disabled",isLast?"true":"false");
+          control.classList.toggle("plannerNextDisabled",isLast);
+          if(!isLast)control.dataset.plannerNext="1";else delete control.dataset.plannerNext;
+        }
+
+        if(isPrevious){
+          const isFirst=context.page<=1;
+          control.setAttribute("aria-disabled",isFirst?"true":"false");
+          control.classList.toggle("plannerNextDisabled",isFirst);
+          if(!isFirst)control.dataset.plannerPrevious="1";else delete control.dataset.plannerPrevious;
+        }
+
+        if(isRouteLink&&context.isSenior&&control instanceof HTMLAnchorElement){
+          control.href="/senior";
+          control.dataset.seniorRoute="1";
+        }
       });
     };
 
-    const handleNext=(event:MouseEvent)=>{
+    const handlePlannerNavigation=(event:MouseEvent)=>{
       const target=(event.target as HTMLElement|null)?.closest<HTMLElement>("button,a");
-      if(!target||target.dataset.plannerNext!=="1")return;
+      if(!target)return;
       const context=plannerContext();
-      if(!context||context.page>=context.total)return;
+      if(!context)return;
+
+      if(target.dataset.seniorRoute==="1"){
+        event.preventDefault();
+        event.stopPropagation();
+        event.stopImmediatePropagation();
+        location.href="/senior";
+        return;
+      }
+
+      const direction=target.dataset.plannerNext==="1"?1:target.dataset.plannerPrevious==="1"?-1:0;
+      if(!direction)return;
+      const destination=context.page+direction;
+      if(destination<1||destination>context.total)return;
+
       event.preventDefault();
       event.stopPropagation();
       event.stopImmediatePropagation();
-      const next=context.page+1;
-      if(context.isSenior)localStorage.setItem("mars-senior-current-page",String(next));
-      else localStorage.setItem("mars-book-current-page",String(next));
-      location.href=context.isSenior?seniorHref(next):juniorHref(next);
+      if(context.isSenior)localStorage.setItem("mars-senior-current-page",String(destination));
+      else localStorage.setItem("mars-book-current-page",String(destination));
+      location.href=context.isSenior?seniorHref(destination):juniorHref(destination);
     };
 
     const enhance=()=>{
       enhanceCustomOptions();
       enhanceSpreadTwoScale();
-      enhanceNextButtons();
+      enhancePlannerNavigation();
     };
 
     enhance();
     const observer=new MutationObserver(()=>requestAnimationFrame(enhance));
     observer.observe(document.body,{childList:true,subtree:true});
-    document.addEventListener("click",handleNext,true);
+    document.addEventListener("click",handlePlannerNavigation,true);
     window.addEventListener("popstate",enhance);
-    return()=>{observer.disconnect();document.removeEventListener("click",handleNext,true);window.removeEventListener("popstate",enhance)};
+    return()=>{observer.disconnect();document.removeEventListener("click",handlePlannerNavigation,true);window.removeEventListener("popstate",enhance)};
   },[]);
 
   return <style jsx global>{`
@@ -176,7 +205,7 @@ export default function CustomCheckboxFields(){
     .scaleColumnHeader{display:grid;grid-template-columns:1.25fr 1fr;gap:8px;align-items:end;margin:5px 0 2px}
     .scaleColumnHeader>div{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
     .scaleColumnHeader b{padding:6px 4px;border-radius:7px;background:#f2ecfa;color:#5c2eb3;text-align:center;font-size:11px;line-height:1.15}
-    [data-planner-next="1"]{opacity:1!important;cursor:pointer!important;pointer-events:auto!important}
+    [data-planner-next="1"],[data-planner-previous="1"]{opacity:1!important;cursor:pointer!important;pointer-events:auto!important}
     .plannerNextDisabled{opacity:.35!important;cursor:not-allowed!important;pointer-events:none!important}
     @media(max-width:980px){.scaleColumnHeader{grid-template-columns:1fr}.scaleColumnHeader>span{display:none}}
     @media(max-width:650px){.customCheckboxText{flex-basis:100%;margin-left:25px}.compactNote{max-width:100%!important}.scaleColumnHeader b{font-size:10px;padding:5px 2px}}
