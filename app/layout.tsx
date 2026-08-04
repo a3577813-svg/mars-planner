@@ -3,6 +3,7 @@ import "./globals.css";
 import "./logo-fix.css";
 import CustomCheckboxFields from "./components/CustomCheckboxFields";
 import PlannerAttachmentEnhancer from "./components/PlannerAttachmentEnhancer";
+import SeniorFinalSpreadEnhancer from "./components/SeniorFinalSpreadEnhancer";
 import LoginRedirect from "./components/LoginRedirect";
 
 export const metadata: Metadata = {
@@ -17,6 +18,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <LoginRedirect />
         <CustomCheckboxFields />
         <PlannerAttachmentEnhancer />
+        <SeniorFinalSpreadEnhancer />
         {children}
       </body>
     </html>
