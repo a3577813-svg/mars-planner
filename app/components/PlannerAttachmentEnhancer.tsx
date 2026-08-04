@@ -16,18 +16,18 @@ type Rule={
 };
 
 const rules:Rule[]=[
-  {path:"/book",page:"1",id:"middle-p1-first-impression",title:"Фото к первой мысли или впечатлению",targetText:"Первая мысль",allowDrawing:false},
+  {path:"/book",page:"1",id:"middle-p1-first-impression",title:"Фото к первой мысли или впечатлению",targetText:"Первая мысль",allowDrawing:false,placement:"inside"},
   {path:"/book",page:"4",id:"middle-p4-quest",title:"Фото с задания-квеста",targetText:"Задание квест",allowDrawing:false},
   {path:"/book",page:"5",id:"middle-p5-memory",title:"Фото на память",pageSide:"right",allowDrawing:false},
   {path:"/book",page:"9",id:"middle-p9-trip-notes",title:"Фото к заметкам о поездке",targetText:"Заметки о поездке",allowDrawing:false},
   {path:"/book-next",page:"13",id:"middle-p13-trip-notes",title:"Фото к заметкам о поездке",targetText:"Заметки о поездке",allowDrawing:false},
   {path:"/book-next",page:"15",id:"middle-p15-marsfest",title:"Фото с МАРСФеста",pageSide:"left",allowDrawing:false},
-  {path:"/book-next",page:"15",id:"middle-p15-map",title:"Наглядная карта",targetText:"Нарисуй наглядную карту",allowDrawing:true},
-  {path:"/book-next2",page:"16",id:"middle-p16-drawing",title:"Место для рисунка",targetText:"Место для рисунка",allowDrawing:true},
-  {path:"/book-next3",page:"21",id:"middle-p21-project-talk",title:"Фото выступлений с проектом",pageSide:"right",allowDrawing:false},
+  {path:"/book-next",page:"15",id:"middle-p15-map",title:"Наглядная карта",targetText:"Нарисуй наглядную карту",allowDrawing:true,placement:"inside"},
+  {path:"/book-next2",page:"16",id:"middle-p16-drawing",title:"Место для рисунка",targetText:"Место для рисунка",allowDrawing:true,placement:"inside"},
+  {path:"/book-next3",page:"21",id:"middle-p21-project-talk",title:"Фото выступлений с проектом",pageSide:"left",allowDrawing:false},
   {path:"/book-next6",page:"28",id:"middle-p28-free-space",title:"Фото или изображение для свободного пространства",targetText:"Свободное пространство",allowDrawing:true,placement:"inside"},
   {path:"/book-next6",page:"30",id:"middle-p30-project-talks",title:"Фото с выступлений с проектами",pageSide:"left",allowDrawing:false},
-  {path:"/book-next8",page:"36",id:"middle-p36-sketches",title:"Скетчи макетов",targetText:"Скетчи макетов",allowDrawing:true},
+  {path:"/book-next8",page:"36",id:"middle-p36-sketches",title:"Скетчи макетов",targetText:"Скетчи макетов",allowDrawing:true,placement:"inside"},
   {path:"/book-next9",page:"38",id:"middle-p38-game-photos",title:"Фотографии с игры",pageSide:"right",allowDrawing:false}
 ];
 
