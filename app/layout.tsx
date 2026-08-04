@@ -4,6 +4,7 @@ import "./logo-fix.css";
 import CustomCheckboxFields from "./components/CustomCheckboxFields";
 import PlannerAttachmentEnhancer from "./components/PlannerAttachmentEnhancer";
 import SeniorFinalSpreadEnhancer from "./components/SeniorFinalSpreadEnhancer";
+import PlannerSaveStatus from "./components/PlannerSaveStatus";
 import LoginRedirect from "./components/LoginRedirect";
 
 export const metadata: Metadata = {
@@ -19,6 +20,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <CustomCheckboxFields />
         <PlannerAttachmentEnhancer />
         <SeniorFinalSpreadEnhancer />
+        <PlannerSaveStatus />
         {children}
       </body>
     </html>
