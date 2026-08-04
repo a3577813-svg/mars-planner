@@ -9,6 +9,7 @@ type Rule={
   page:string;
   id:string;
   title:string;
+  audience:"middle"|"senior";
   targetText?:string;
   pageSide?:"left"|"right";
   allowDrawing?:boolean;
@@ -16,19 +17,35 @@ type Rule={
 };
 
 const rules:Rule[]=[
-  {path:"/book",page:"1",id:"middle-p1-first-impression",title:"Фото к первой мысли или впечатлению",targetText:"Первая мысль",allowDrawing:false,placement:"inside"},
-  {path:"/book",page:"4",id:"middle-p4-quest",title:"Фото с задания-квеста",targetText:"Задание квест",allowDrawing:false},
-  {path:"/book",page:"5",id:"middle-p5-memory",title:"Фото на память",pageSide:"right",allowDrawing:false},
-  {path:"/book",page:"9",id:"middle-p9-trip-notes",title:"Фото к заметкам о поездке",targetText:"Заметки о поездке",allowDrawing:false},
-  {path:"/book-next",page:"13",id:"middle-p13-trip-notes",title:"Фото к заметкам о поездке",targetText:"Заметки о поездке",allowDrawing:false},
-  {path:"/book-next",page:"15",id:"middle-p15-marsfest",title:"Фото с МАРСФеста",pageSide:"left",allowDrawing:false},
-  {path:"/book-next",page:"15",id:"middle-p15-map",title:"Наглядная карта",targetText:"Нарисуй наглядную карту",allowDrawing:true,placement:"inside"},
-  {path:"/book-next2",page:"16",id:"middle-p16-drawing",title:"Место для рисунка",targetText:"Место для рисунка",allowDrawing:true,placement:"inside"},
-  {path:"/book-next3",page:"21",id:"middle-p21-project-talk",title:"Фото выступлений с проектом",pageSide:"left",allowDrawing:false},
-  {path:"/book-next6",page:"28",id:"middle-p28-free-space",title:"Фото или изображение для свободного пространства",targetText:"Свободное пространство",allowDrawing:true,placement:"inside"},
-  {path:"/book-next6",page:"30",id:"middle-p30-project-talks",title:"Фото с выступлений с проектами",pageSide:"left",allowDrawing:false},
-  {path:"/book-next8",page:"36",id:"middle-p36-sketches",title:"Скетчи макетов",targetText:"Скетчи макетов",allowDrawing:true,placement:"inside"},
-  {path:"/book-next9",page:"38",id:"middle-p38-game-photos",title:"Фотографии с игры",pageSide:"right",allowDrawing:false}
+  // 5–7 уровни
+  {audience:"middle",path:"/book",page:"1",id:"middle-p1-first-impression",title:"Фото к первой мысли или впечатлению",targetText:"Первая мысль",allowDrawing:false,placement:"inside"},
+  {audience:"middle",path:"/book",page:"4",id:"middle-p4-quest",title:"Фото с задания-квеста",targetText:"Задание квест",allowDrawing:false},
+  {audience:"middle",path:"/book",page:"5",id:"middle-p5-memory",title:"Фото на память",pageSide:"right",allowDrawing:false},
+  {audience:"middle",path:"/book",page:"9",id:"middle-p9-trip-notes",title:"Фото к заметкам о поездке",targetText:"Заметки о поездке",allowDrawing:false},
+  {audience:"middle",path:"/book-next",page:"13",id:"middle-p13-trip-notes",title:"Фото к заметкам о поездке",targetText:"Заметки о поездке",allowDrawing:false},
+  {audience:"middle",path:"/book-next",page:"15",id:"middle-p15-marsfest",title:"Фото с МАРСФеста",pageSide:"left",allowDrawing:false},
+  {audience:"middle",path:"/book-next",page:"15",id:"middle-p15-map",title:"Наглядная карта",targetText:"Нарисуй наглядную карту",allowDrawing:true,placement:"inside"},
+  {audience:"middle",path:"/book-next2",page:"16",id:"middle-p16-drawing",title:"Место для рисунка",targetText:"Место для рисунка",allowDrawing:true,placement:"inside"},
+  {audience:"middle",path:"/book-next3",page:"21",id:"middle-p21-project-talk",title:"Фото выступлений с проектом",pageSide:"left",allowDrawing:false},
+  {audience:"middle",path:"/book-next6",page:"28",id:"middle-p28-free-space",title:"Фото или изображение для свободного пространства",targetText:"Свободное пространство",allowDrawing:true,placement:"inside"},
+  {audience:"middle",path:"/book-next6",page:"30",id:"middle-p30-project-talks",title:"Фото с выступлений с проектами",pageSide:"left",allowDrawing:false},
+  {audience:"middle",path:"/book-next8",page:"36",id:"middle-p36-sketches",title:"Скетчи макетов",targetText:"Скетчи макетов",allowDrawing:true,placement:"inside"},
+  {audience:"middle",path:"/book-next9",page:"38",id:"middle-p38-game-photos",title:"Фотографии с игры",pageSide:"right",allowDrawing:false},
+
+  // 8–11 уровни. Разворот 13 и уникальный разворот 38 намеренно без загрузок.
+  {audience:"senior",path:"/book",page:"1",id:"senior-p1-first-impression",title:"Фото к первой мысли или впечатлению",targetText:"Первая мысль",allowDrawing:false,placement:"inside"},
+  {audience:"senior",path:"/book",page:"4",id:"senior-p4-quest",title:"Фото с задания-квеста",targetText:"Задание квест",allowDrawing:false},
+  {audience:"senior",path:"/book",page:"5",id:"senior-p5-memory",title:"Фото на память",pageSide:"right",allowDrawing:false},
+  {audience:"senior",path:"/book",page:"9",id:"senior-p9-trip-notes",title:"Фото к заметкам о поездке",targetText:"Заметки о поездке",allowDrawing:false},
+  {audience:"senior",path:"/book-next",page:"15",id:"senior-p15-marsfest",title:"Фото с МАРСФеста",pageSide:"left",allowDrawing:false},
+  {audience:"senior",path:"/book-next",page:"15",id:"senior-p15-map",title:"Наглядная карта",targetText:"Нарисуй наглядную карту",allowDrawing:true,placement:"inside"},
+  {audience:"senior",path:"/book-next2",page:"16",id:"senior-p16-drawing",title:"Место для рисунка",targetText:"Место для рисунка",allowDrawing:true,placement:"inside"},
+  {audience:"senior",path:"/book-next3",page:"21",id:"senior-p21-project-talk",title:"Фото выступлений с проектом",pageSide:"left",allowDrawing:false},
+  {audience:"senior",path:"/book-next6",page:"28",id:"senior-p28-free-space",title:"Фото или изображение для свободного пространства",targetText:"Свободное пространство",allowDrawing:true,placement:"inside"},
+  {audience:"senior",path:"/book-next6",page:"30",id:"senior-p30-project-talks",title:"Фото с выступлений с проектами",pageSide:"left",allowDrawing:false},
+  {audience:"senior",path:"/book-next8",page:"36",id:"senior-p36-sketches",title:"Скетчи макетов",targetText:"Скетчи макетов",allowDrawing:true,placement:"inside"},
+  // Разворот 45 старшей школы использует общий шаблон разворота 38 средней школы.
+  {audience:"senior",path:"/book-next9",page:"38",id:"senior-p45-game-photos",title:"Фотографии с игры",pageSide:"right",allowDrawing:false}
 ];
 
 const roots=new Map<Element,Root>();
@@ -78,9 +95,11 @@ export default function PlannerAttachmentEnhancer(){
   useEffect(()=>{
     const enhance=()=>{
       const params=new URLSearchParams(location.search);
-      if(params.get("senior")==="1")return;
+      const audience:Rule["audience"]=params.get("senior")==="1"?"senior":"middle";
       const page=params.get("page")||"1";
-      rules.filter(rule=>rule.path===location.pathname&&rule.page===page).forEach(mountRule);
+      rules
+        .filter(rule=>rule.audience===audience&&rule.path===location.pathname&&rule.page===page)
+        .forEach(mountRule);
     };
 
     enhance();
