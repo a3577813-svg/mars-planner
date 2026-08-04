@@ -32,6 +32,7 @@ export default function PlannerAttachment({id,title="Фото, изображе�
   const[caption,setCaption]=useState("");
   const[error,setError]=useState("");
   const[drawingOpen,setDrawingOpen]=useState(false);
+  const[dragging,setDragging]=useState(false);
   const canvasRef=useRef<HTMLCanvasElement>(null);
   const drawingRef=useRef(false);
 
@@ -52,6 +53,12 @@ export default function PlannerAttachment({id,title="Фото, изображе�
     try{saveImage(await resizeImage(file))}catch(e){setError(e instanceof Error?e.message:"Не удалось загрузить изображение")}
   };
 
+  const onDrop=(event:React.DragEvent<HTMLElement>)=>{
+    event.preventDefault();
+    setDragging(false);
+    void onFile(event.dataTransfer.files?.[0]);
+  };
+
   useEffect(()=>{
     if(!drawingOpen)return;
     const canvas=canvasRef.current;if(!canvas)return;
@@ -69,21 +76,22 @@ export default function PlannerAttachment({id,title="Фото, изображе�
   const clearDrawing=()=>{const canvas=canvasRef.current;if(!canvas)return;const ctx=canvas.getContext("2d");if(!ctx)return;ctx.save();ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle="#fffdf8";ctx.fillRect(0,0,canvas.width,canvas.height);ctx.restore()};
   const saveDrawing=()=>{const canvas=canvasRef.current;if(!canvas)return;saveImage(canvas.toDataURL("image/png"));setDrawingOpen(false)};
 
-  return <section className="plannerAttachment" data-pdf-attachment="true">
+  return <section className={`plannerAttachment${dragging?" isDragging":""}`} data-pdf-attachment="true" onDragEnter={e=>{e.preventDefault();setDragging(true)}} onDragOver={e=>e.preventDefault()} onDragLeave={e=>{if(e.currentTarget===e.target)setDragging(false)}} onDrop={onDrop}>
     <div className="attachmentHead"><div><b>{title}</b><small>Изображение и подпись будут включены в будущий PDF-экспорт.</small></div></div>
     {!image?<div className="attachmentEmpty">
       <label className="attachmentButton">＋ Добавить фото или изображение<input type="file" accept="image/jpeg,image/png,image/webp" onChange={e=>onFile(e.target.files?.[0])}/></label>
       {allowDrawing&&<button type="button" className="attachmentSecondary" onClick={()=>setDrawingOpen(true)}>✎ Нарисовать</button>}
-      <small>JPG, PNG или WebP, до {MAX_FILE_MB} МБ</small>
+      <small>JPG, PNG или WebP, до {MAX_FILE_MB} МБ. На компьютере файл можно перетащить сюда.</small>
     </div>:<div className="attachmentPreview">
       <img src={image} alt={caption||"Вложение ученика"}/>
       <div className="attachmentActions"><label>Заменить<input type="file" accept="image/jpeg,image/png,image/webp" onChange={e=>onFile(e.target.files?.[0])}/></label>{allowDrawing&&<button type="button" onClick={()=>setDrawingOpen(true)}>Нарисовать заново</button>}<button type="button" onClick={()=>saveImage("")}>Удалить</button></div>
     </div>}
+    {dragging&&<div className="attachmentDropHint">Отпусти файл, чтобы добавить изображение</div>}
     {error&&<p className="attachmentError">{error}</p>}
     <label className="attachmentCaption"><span>Подпись или комментарий</span><textarea rows={2} value={caption} onChange={e=>{setCaption(e.target.value);localStorage.setItem(storageKey(id,"caption"),e.target.value)}}/></label>
     {drawingOpen&&<div className="drawingModal" role="dialog" aria-modal="true" aria-label="Рисунок"><div className="drawingBox"><div className="drawingTitle"><b>Нарисуй пальцем, мышкой или стилусом</b><button type="button" onClick={()=>setDrawingOpen(false)}>×</button></div><canvas ref={canvasRef} onPointerDown={start} onPointerMove={move} onPointerUp={end} onPointerCancel={end}/><div className="drawingActions"><button type="button" onClick={clearDrawing}>Очистить</button><button type="button" className="save" onClick={saveDrawing}>Сохранить рисунок</button></div></div></div>}
     <style jsx global>{`
-      .plannerAttachment{margin:10px 0;padding:12px;border:1px dashed #b9a9c9;border-radius:12px;background:#fbf8ff;break-inside:avoid;page-break-inside:avoid}.attachmentHead b{display:block;font:700 15px Georgia}.attachmentHead small{display:block;margin-top:3px;color:#746b7d;font-size:11px}.attachmentEmpty{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px}.attachmentButton,.attachmentSecondary,.attachmentActions label,.attachmentActions button{border:0;border-radius:10px;padding:9px 11px;background:#5b27b1;color:#fff;font:800 12px Inter;cursor:pointer}.attachmentSecondary{background:#eee7f8;color:#5727a8}.attachmentButton input,.attachmentActions input{display:none}.attachmentEmpty>small{color:#817788}.attachmentPreview{margin-top:10px}.attachmentPreview img{display:block;width:100%;max-height:360px;object-fit:contain;border-radius:9px;background:#eee8f2}.attachmentActions{display:flex;gap:7px;flex-wrap:wrap;margin-top:7px}.attachmentActions label,.attachmentActions button{background:#eee7f8;color:#5727a8}.attachmentActions button:last-child{background:#fff0ed;color:#b54832}.attachmentCaption{display:grid;gap:5px;margin-top:9px}.attachmentCaption span{font:700 12px Georgia}.attachmentCaption textarea{width:100%;border:1px solid #d8cfdf;border-radius:8px;padding:8px;resize:vertical;background:#fff;font:13px/1.4 Inter}.attachmentError{margin:8px 0 0;color:#b33b2c;font-size:12px}.drawingModal{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;padding:18px;background:#251b32aa}.drawingBox{width:min(900px,96vw);padding:14px;border-radius:18px;background:#fff;box-shadow:0 25px 80px #0005}.drawingTitle{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}.drawingTitle button{width:34px;height:34px;border:0;border-radius:50%;font-size:24px}.drawingBox canvas{display:block;width:100%;height:min(58vh,520px);border:1px solid #cfc5d8;border-radius:10px;background:#fffdf8;touch-action:none}.drawingActions{display:flex;justify-content:flex-end;gap:8px;margin-top:10px}.drawingActions button{border:0;border-radius:10px;padding:10px 13px;font-weight:800}.drawingActions .save{background:#5b27b1;color:#fff}@media print{.attachmentEmpty,.attachmentActions,.drawingModal{display:none!important}.plannerAttachment{border-style:solid;background:#fff}.attachmentPreview img{max-height:420px}.attachmentCaption textarea{border:0;padding:0;overflow:visible}}
+      .plannerAttachment{position:relative;margin:10px 0;padding:12px;border:1px dashed #b9a9c9;border-radius:12px;background:#fbf8ff;break-inside:avoid;page-break-inside:avoid;transition:.18s ease}.plannerAttachment.isDragging{border-color:#6b34bd;background:#f2eaff;box-shadow:0 0 0 3px #7b46c826}.attachmentHead b{display:block;font:700 15px Georgia}.attachmentHead small{display:block;margin-top:3px;color:#746b7d;font-size:11px}.attachmentEmpty{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px}.attachmentButton,.attachmentSecondary,.attachmentActions label,.attachmentActions button{border:0;border-radius:10px;padding:9px 11px;background:#5b27b1;color:#fff;font:800 12px Inter;cursor:pointer}.attachmentSecondary{background:#eee7f8;color:#5727a8}.attachmentButton input,.attachmentActions input{display:none}.attachmentEmpty>small{color:#817788}.attachmentPreview{margin-top:10px}.attachmentPreview img{display:block;width:100%;max-height:360px;object-fit:contain;border-radius:9px;background:#eee8f2}.attachmentActions{display:flex;gap:7px;flex-wrap:wrap;margin-top:7px}.attachmentActions label,.attachmentActions button{background:#eee7f8;color:#5727a8}.attachmentActions button:last-child{background:#fff0ed;color:#b54832}.attachmentDropHint{position:absolute;inset:8px;z-index:3;display:grid;place-items:center;border:2px dashed #6b34bd;border-radius:10px;background:#f7f1fff2;color:#5523a5;font-weight:900;text-align:center;padding:18px;pointer-events:none}.attachmentCaption{display:grid;gap:5px;margin-top:9px}.attachmentCaption span{font:700 12px Georgia}.attachmentCaption textarea{width:100%;border:1px solid #d8cfdf;border-radius:8px;padding:8px;resize:vertical;background:#fff;font:13px/1.4 Inter}.attachmentError{margin:8px 0 0;color:#b33b2c;font-size:12px}.drawingModal{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;padding:18px;background:#251b32aa}.drawingBox{width:min(900px,96vw);padding:14px;border-radius:18px;background:#fff;box-shadow:0 25px 80px #0005}.drawingTitle{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}.drawingTitle button{width:34px;height:34px;border:0;border-radius:50%;font-size:24px}.drawingBox canvas{display:block;width:100%;height:min(58vh,520px);border:1px solid #cfc5d8;border-radius:10px;background:#fffdf8;touch-action:none}.drawingActions{display:flex;justify-content:flex-end;gap:8px;margin-top:10px}.drawingActions button{border:0;border-radius:10px;padding:10px 13px;font-weight:800}.drawingActions .save{background:#5b27b1;color:#fff}@media print{.attachmentEmpty,.attachmentActions,.drawingModal,.attachmentDropHint{display:none!important}.plannerAttachment{border-style:solid;background:#fff}.attachmentPreview img{max-height:420px}.attachmentCaption textarea{border:0;padding:0;overflow:visible}}
     `}</style>
   </section>;
 }
