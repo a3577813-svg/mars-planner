@@ -5,6 +5,7 @@ import CustomCheckboxFields from "./components/CustomCheckboxFields";
 import PlannerAttachmentEnhancer from "./components/PlannerAttachmentEnhancer";
 import SeniorFinalSpreadEnhancer from "./components/SeniorFinalSpreadEnhancer";
 import PlannerSaveStatus from "./components/PlannerSaveStatus";
+import PlannerDesktopEnhancer from "./components/PlannerDesktopEnhancer";
 import LoginRedirect from "./components/LoginRedirect";
 
 export const metadata: Metadata = {
@@ -21,6 +22,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <PlannerAttachmentEnhancer />
         <SeniorFinalSpreadEnhancer />
         <PlannerSaveStatus />
+        <PlannerDesktopEnhancer />
         {children}
       </body>
     </html>
