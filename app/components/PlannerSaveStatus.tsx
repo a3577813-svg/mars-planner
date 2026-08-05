@@ -5,22 +5,52 @@ import {useEffect,useRef,useState} from "react";
 export default function PlannerSaveStatus(){
   const[state,setState]=useState<"idle"|"saving"|"saved">("idle");
   const timer=useRef<ReturnType<typeof setTimeout>|null>(null);
+  const savingRef=useRef(false);
 
   useEffect(()=>{
     const isPlanner=()=>location.pathname.startsWith("/book")||location.pathname.startsWith("/senior/unique");
-    const onChange=(event:Event)=>{
+
+    const markSaving=()=>{
       if(!isPlanner())return;
-      const target=event.target as HTMLElement|null;
-      if(!target?.matches("input,textarea,select"))return;
+      savingRef.current=true;
       setState("saving");
       if(timer.current)clearTimeout(timer.current);
-      timer.current=setTimeout(()=>setState("saved"),420);
+      timer.current=setTimeout(()=>{
+        savingRef.current=false;
+        setState("saved");
+      },420);
     };
+
+    const onChange=(event:Event)=>{
+      const target=event.target as HTMLElement|null;
+      if(!target?.matches("input,textarea,select"))return;
+      markSaving();
+    };
+
+    const onKeyDown=(event:KeyboardEvent)=>{
+      if(!isPlanner())return;
+      if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==="s"){
+        event.preventDefault();
+        markSaving();
+      }
+    };
+
+    const onBeforeUnload=(event:BeforeUnloadEvent)=>{
+      if(!savingRef.current)return;
+      event.preventDefault();
+      event.returnValue="";
+    };
+
     document.addEventListener("input",onChange,true);
     document.addEventListener("change",onChange,true);
+    document.addEventListener("keydown",onKeyDown,true);
+    window.addEventListener("beforeunload",onBeforeUnload);
+
     return()=>{
       document.removeEventListener("input",onChange,true);
       document.removeEventListener("change",onChange,true);
+      document.removeEventListener("keydown",onKeyDown,true);
+      window.removeEventListener("beforeunload",onBeforeUnload);
       if(timer.current)clearTimeout(timer.current);
     };
   },[]);
