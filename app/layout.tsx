@@ -15,6 +15,7 @@ import DashboardMission from "./components/DashboardMission";
 import DashboardRouteDesign from "./components/DashboardRouteDesign";
 import DashboardFirstPageDesign from "./components/DashboardFirstPageDesign";
 import DashboardNavigationFix from "./components/DashboardNavigationFix";
+import TutorSpreadReview from "./components/TutorSpreadReview";
 import LoginRedirect from "./components/LoginRedirect";
 
 export const metadata: Metadata = {
@@ -41,6 +42,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <DashboardRouteDesign />
         <DashboardFirstPageDesign />
         <DashboardNavigationFix />
+        <TutorSpreadReview />
         {children}
       </body>
     </html>
