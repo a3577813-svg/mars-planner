@@ -83,7 +83,7 @@ export default function DashboardLiveHeader(){
    }
 
    const h1=hero.querySelector("h1");
-   if(h1)h1.textContent="Продолжим?";
+   if(h1)h1.textContent="Привет, я твой личный живой маршрут";
    const primary=hero.querySelector<HTMLAnchorElement>("a.primary");
    if(primary){
     const number=(hero.querySelector(".ring strong")?.textContent||"1").trim();
