@@ -6,6 +6,57 @@ type OverrideStore=Record<string,Record<string,string>>;
 const pageNumber=()=>Number(new URLSearchParams(location.search).get("page")||1)||1;
 const audience=()=>new URLSearchParams(location.search).get("senior")==="1"||location.pathname.startsWith("/senior/")?"senior":"middle";
 const storeKey=()=>`${audience()}:${pageNumber()}`;
-function pathFor(el:Element){const parts:string[]=[];let node:Element|null=el;while(node&&node!==document.body){const parent=node.parentElement;if(!parent)break;const same=Array.from(parent.children).filter(x=>x.tagName===node!.tagName);parts.unshift(`${node.tagName.toLowerCase()}:nth-of-type(${same.indexOf(node)+1})`);node=parent}return parts.join(">");}
-function editableNodes(){const root=document.querySelector("main");if(!root)return[] as HTMLElement[];return Array.from(root.querySelectorAll<HTMLElement>("h1,h2,h3,h4,p,label,legend,li,th,td,.title,.subtitle,.question,.prompt,.caption")).filter(el=>!el.closest("header,nav,.adminTextPanel,.tutorReviewPanel")&&!(el.children.length>0&&el.querySelector("input,textarea,select,button,a"))&&(el.textContent||"").trim().length>0)}
-export default function AdminSpreadTextEditor(){useEffect(()=>{const mode=new URLSearchParams(location.search).get("mode"),key=storeKey();let overrides:OverrideStore={};try{overrides=JSON.parse(localStorage.getItem("mars-spread-text-overrides")||"{}")||{}}catch{};const apply=()=>Object.entries(overrides[key]||{}).forEach(([selector,text])=>{const el=document.querySelector<HTMLElement>(selector);if(el)el.textContent=text});apply();if(mode!=="admin-edit")return;const install=()=>{if(document.querySelector(".adminTextPanel"))return true;const main=document.querySelector("main");if(!main)return false;const panel=document.createElement("aside");panel.className="adminTextPanel";panel.innerHTML=`<p>РЕДАКТОР РАЗВОРОТА</p><h3>Редактирование текста</h3><span>Нажми на выделенный текст и измени его.</span><div><button data-save>Сохранить</button><button data-reset>Сбросить</button><button data-back>← К назначениям</button></div>`;document.body.appendChild(panel);editableNodes().forEach(el=>{el.contentEditable="true";el.dataset.adminEditable="1"});panel.querySelector<HTMLButtonElement>("[data-save]")!.onclick=()=>{const page:Record<string,string>={};editableNodes().forEach(el=>page[pathFor(el)]=(el.textContent||"").trim());overrides={...overrides,[key]:page};localStorage.setItem("mars-spread-text-overrides",JSON.stringify(overrides))};panel.querySelector<HTMLButtonElement>("[data-reset]")!.onclick=()=>{delete overrides[key];localStorage.setItem("mars-spread-text-overrides",JSON.stringify(overrides));location.reload()};panel.querySelector<HTMLButtonElement>("[data-back]")!.onclick=()=>location.assign("/admin/spreads");return true};if(install())return;let n=0;const timer=setInterval(()=>{n++;if(install()||n>30)clearInterval(timer)},100);return()=>clearInterval(timer)},[]);return <style jsx global>{`[data-admin-editable="1"]{outline:1px dashed #9b72d2!important;outline-offset:3px;cursor:text!important}.adminTextPanel{position:fixed;right:18px;top:96px;z-index:5000;width:290px;padding:20px;border:1px solid #d9c9e8;border-radius:20px;background:#fff;box-shadow:0 22px 70px #24152f35}.adminTextPanel p{font-size:10px;font-weight:900;color:#7650ad}.adminTextPanel div{display:grid;gap:8px;margin-top:15px}.adminTextPanel button{border:0;border-radius:11px;padding:10px;background:#5e2abb;color:#fff;font-weight:800}@media print{.adminTextPanel{display:none!important}[data-admin-editable="1"]{outline:0!important}}`}</style>}
+
+function pathFor(el:Element){
+ const parts:string[]=[];
+ let node:Element|null=el;
+ while(node&&node!==document.body){
+  const parent:Element|null=node.parentElement;
+  if(!parent)break;
+  const same:Element[]=Array.from(parent.children).filter((child:Element)=>child.tagName===node!.tagName);
+  parts.unshift(`${node.tagName.toLowerCase()}:nth-of-type(${same.indexOf(node)+1})`);
+  node=parent;
+ }
+ return parts.join(">");
+}
+
+function editableNodes(){
+ const root=document.querySelector("main");
+ if(!root)return[] as HTMLElement[];
+ return Array.from(root.querySelectorAll<HTMLElement>("h1,h2,h3,h4,p,label,legend,li,th,td,.title,.subtitle,.question,.prompt,.caption")).filter(el=>!el.closest("header,nav,.adminTextPanel,.tutorReviewPanel")&&!(el.children.length>0&&el.querySelector("input,textarea,select,button,a"))&&(el.textContent||"").trim().length>0)
+}
+
+export default function AdminSpreadTextEditor(){
+ useEffect(()=>{
+  const mode=new URLSearchParams(location.search).get("mode"),key=storeKey();
+  let overrides:OverrideStore={};
+  try{overrides=JSON.parse(localStorage.getItem("mars-spread-text-overrides")||"{}")||{}}catch{}
+  const apply=()=>Object.entries(overrides[key]||{}).forEach(([selector,text])=>{const el=document.querySelector<HTMLElement>(selector);if(el)el.textContent=text});
+  apply();
+  if(mode!=="admin-edit")return;
+  const install=()=>{
+   if(document.querySelector(".adminTextPanel"))return true;
+   const main=document.querySelector("main");
+   if(!main)return false;
+   const panel=document.createElement("aside");
+   panel.className="adminTextPanel";
+   panel.innerHTML=`<p>РЕДАКТОР РАЗВОРОТА</p><h3>Редактирование текста</h3><span>Нажми на выделенный текст и измени его.</span><div><button data-save>Сохранить</button><button data-reset>Сбросить</button><button data-back>← К назначениям</button></div>`;
+   document.body.appendChild(panel);
+   editableNodes().forEach(el=>{el.contentEditable="true";el.dataset.adminEditable="1"});
+   panel.querySelector<HTMLButtonElement>("[data-save]")!.onclick=()=>{
+    const page:Record<string,string>={};
+    editableNodes().forEach(el=>page[pathFor(el)]=(el.textContent||"").trim());
+    overrides={...overrides,[key]:page};
+    localStorage.setItem("mars-spread-text-overrides",JSON.stringify(overrides));
+   };
+   panel.querySelector<HTMLButtonElement>("[data-reset]")!.onclick=()=>{delete overrides[key];localStorage.setItem("mars-spread-text-overrides",JSON.stringify(overrides));location.reload()};
+   panel.querySelector<HTMLButtonElement>("[data-back]")!.onclick=()=>location.assign("/admin/spreads");
+   return true;
+  };
+  if(install())return;
+  let n=0;
+  const timer=setInterval(()=>{n++;if(install()||n>30)clearInterval(timer)},100);
+  return()=>clearInterval(timer)
+ },[]);
+ return <style jsx global>{`[data-admin-editable="1"]{outline:1px dashed #9b72d2!important;outline-offset:3px;cursor:text!important}.adminTextPanel{position:fixed;right:18px;top:96px;z-index:5000;width:290px;padding:20px;border:1px solid #d9c9e8;border-radius:20px;background:#fff;box-shadow:0 22px 70px #24152f35}.adminTextPanel p{font-size:10px;font-weight:900;color:#7650ad}.adminTextPanel div{display:grid;gap:8px;margin-top:15px}.adminTextPanel button{border:0;border-radius:11px;padding:10px;background:#5e2abb;color:#fff;font-weight:800}@media print{.adminTextPanel{display:none!important}[data-admin-editable="1"]{outline:0!important}}`}</style>
+}
