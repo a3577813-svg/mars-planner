@@ -5,6 +5,7 @@ import SeniorStorageNamespace from "./components/SeniorStorageNamespace";
 import CustomCheckboxFields from "./components/CustomCheckboxFields";
 import PlannerAttachmentEnhancer from "./components/PlannerAttachmentEnhancer";
 import SeniorFinalSpreadEnhancer from "./components/SeniorFinalSpreadEnhancer";
+import SeniorSpreadCountEnhancer from "./components/SeniorSpreadCountEnhancer";
 import PlannerSaveStatus from "./components/PlannerSaveStatus";
 import PlannerDesktopEnhancer from "./components/PlannerDesktopEnhancer";
 import DashboardProgressEnhancer from "./components/DashboardProgressEnhancer";
@@ -23,6 +24,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <LoginRedirect />
         <CustomCheckboxFields />
         <PlannerAttachmentEnhancer />
+        <SeniorSpreadCountEnhancer />
         <SeniorFinalSpreadEnhancer />
         <PlannerSaveStatus />
         <PlannerDesktopEnhancer />
