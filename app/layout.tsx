@@ -18,6 +18,7 @@ import DashboardNavigationFix from "./components/DashboardNavigationFix";
 import TutorSpreadReview from "./components/TutorSpreadReview";
 import AdminCalendarLinkEnhancer from "./components/AdminCalendarLinkEnhancer";
 import LoginRedirect from "./components/LoginRedirect";
+import RoleAccessControl from "./components/RoleAccessControl";
 
 export const metadata: Metadata = {
   title: "Живая планёрка МАРС",
@@ -30,6 +31,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <body>
         <SeniorStorageNamespace />
         <LoginRedirect />
+        <RoleAccessControl />
         <CustomCheckboxFields />
         <PlannerAttachmentEnhancer />
         <SeniorSpreadCountEnhancer />
