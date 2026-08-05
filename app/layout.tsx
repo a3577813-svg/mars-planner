@@ -6,6 +6,7 @@ import PlannerAttachmentEnhancer from "./components/PlannerAttachmentEnhancer";
 import SeniorFinalSpreadEnhancer from "./components/SeniorFinalSpreadEnhancer";
 import PlannerSaveStatus from "./components/PlannerSaveStatus";
 import PlannerDesktopEnhancer from "./components/PlannerDesktopEnhancer";
+import DashboardProgressEnhancer from "./components/DashboardProgressEnhancer";
 import LoginRedirect from "./components/LoginRedirect";
 
 export const metadata: Metadata = {
@@ -23,6 +24,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <SeniorFinalSpreadEnhancer />
         <PlannerSaveStatus />
         <PlannerDesktopEnhancer />
+        <DashboardProgressEnhancer />
         {children}
       </body>
     </html>
