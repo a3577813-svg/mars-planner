@@ -32,13 +32,14 @@ export default function DashboardCalendar(){
    const root=document.querySelector<HTMLElement>(location.pathname==="/senior"?"main.senior":"main.studentCabinet");
    const aside=root?.querySelector("aside");
    if(!root||!aside)return;
-   if(!aside.querySelector(".marsCalendarPanel")){
+   let panel=aside.querySelector<HTMLElement>(".marsCalendarPanel");
+   if(!panel){
     const now=new Date(),today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
     const upcoming=events.filter(e=>parse(e.end||e.start)>=today).slice(0,3);
-    const panel=document.createElement("section");panel.className="panel marsCalendarPanel";
+    panel=document.createElement("section");panel.className="panel marsCalendarPanel";
     panel.innerHTML=`<p>КАЛЕНДАРЬ МАРС</p><h3>Ближайшие события</h3><div class="marsCalendarMini">${upcoming.map(e=>`<article><span>${e.icon}</span><div><b>${e.title}</b><small>${fmt(e)}</small></div></article>`).join("")}</div><button type="button" class="marsOpenCalendar">Открыть календарь года</button>`;
-    aside.appendChild(panel);
    }
+   if(aside.firstElementChild!==panel)aside.prepend(panel);
    root.querySelectorAll<HTMLElement>(".marsOpenCalendar,.marsLiveStrip button").forEach(button=>{button.onclick=()=>setOpen(true)});
   };
   apply();const observer=new MutationObserver(()=>requestAnimationFrame(apply));observer.observe(document.body,{childList:true,subtree:true});
