@@ -15,6 +15,7 @@ import DashboardMission from "./components/DashboardMission";
 import DashboardRouteDesign from "./components/DashboardRouteDesign";
 import DashboardFirstPageDesign from "./components/DashboardFirstPageDesign";
 import DashboardNavigationFix from "./components/DashboardNavigationFix";
+import StudentAssignmentEnhancer from "./components/StudentAssignmentEnhancer";
 import TutorSpreadReview from "./components/TutorSpreadReview";
 import AdminCalendarLinkEnhancer from "./components/AdminCalendarLinkEnhancer";
 import AdminSpreadLinkEnhancer from "./components/AdminSpreadLinkEnhancer";
@@ -47,6 +48,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <DashboardRouteDesign />
         <DashboardFirstPageDesign />
         <DashboardNavigationFix />
+        <StudentAssignmentEnhancer />
         <TutorSpreadReview />
         <AdminCalendarLinkEnhancer />
         <AdminSpreadLinkEnhancer />
