@@ -1,3 +1,5 @@
+import {readJson,writeJson} from "./plannerStorage";
+
 export type PlannerAudience="middle"|"senior";
 
 export type SpreadAssignment={
@@ -20,16 +22,12 @@ export function assignmentKey(audience:PlannerAudience,page:number):string{
 }
 
 export function readAssignments():SpreadAssignmentStore{
-  if(typeof window==="undefined")return{};
-  try{
-    const parsed=JSON.parse(localStorage.getItem(ASSIGNMENTS_STORAGE_KEY)||"{}");
-    return parsed&&typeof parsed==="object"?parsed:{};
-  }catch{return{}}
+  const parsed=readJson<SpreadAssignmentStore>(ASSIGNMENTS_STORAGE_KEY,{});
+  return parsed&&typeof parsed==="object"?parsed:{};
 }
 
 export function saveAssignments(store:SpreadAssignmentStore):void{
-  if(typeof window==="undefined")return;
-  localStorage.setItem(ASSIGNMENTS_STORAGE_KEY,JSON.stringify(store));
+  writeJson(ASSIGNMENTS_STORAGE_KEY,store);
 }
 
 export function assignmentFor(store:SpreadAssignmentStore,audience:PlannerAudience,page:number):SpreadAssignment{
