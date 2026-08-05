@@ -1,7 +1,8 @@
 "use client";
 
 import {useEffect} from "react";
-import {assignmentFor,assignmentLabel,assignmentState,PlannerAudience,readAssignments} from "../lib/plannerAssignments";
+import {assignmentFor,assignmentLabel,assignmentState,readAssignments} from "../lib/plannerAssignments";
+import type {PlannerAudience} from "../lib/plannerAssignments";
 
 function hrefPage(path:string,search:string,audience:PlannerAudience){
   const params=new URLSearchParams(search);
@@ -24,8 +25,6 @@ export default function StudentAssignmentEnhancer(){
       const root=document.querySelector<HTMLElement>(dashboardAudience==="middle"?"main.studentCabinet":"main.senior");
       if(!root)return;
       const dashboardLinks=Array.from(root.querySelectorAll<HTMLAnchorElement>(dashboardAudience==="middle"?".routeList>a":".list>a"));
-      let preferred:HTMLAnchorElement|null=null;
-      let firstOpen:HTMLAnchorElement|null=null;
 
       dashboardLinks.forEach((link,index)=>{
         const page=index+1;
@@ -41,13 +40,12 @@ export default function StudentAssignmentEnhancer(){
           link.setAttribute("aria-disabled","true");
           link.tabIndex=-1;
           link.addEventListener("click",event=>{event.preventDefault();event.stopImmediatePropagation()},true);
-        }else{
-          if(!firstOpen)firstOpen=link;
-          if(!preferred&&state==="current")preferred=link;
         }
       });
 
-      const target:HTMLAnchorElement|null=preferred||firstOpen;
+      const preferred=dashboardLinks.find(link=>link.classList.contains("weekCurrent")&&!link.classList.contains("adminHidden"));
+      const firstOpen=dashboardLinks.find(link=>!link.classList.contains("adminHidden"));
+      const target=preferred??firstOpen;
       if(target){
         const primary=root.querySelector<HTMLAnchorElement>(".hero a.primary");
         const focus=root.querySelector<HTMLAnchorElement>("aside .accent a");
