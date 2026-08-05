@@ -4,7 +4,7 @@ import {useEffect} from "react";
 
 export default function LoginRedirect(){
   useEffect(()=>{
-    const dashboardFor=(login:string)=>login==="student8"?"/senior":login==="student7"?"/student":"";
+    const dashboardFor=(login:string)=>login==="student8"?"/senior":login==="student7"?"/student":login==="teacher"?"/teacher":"";
 
     const onSubmit=(event:SubmitEvent)=>{
       if(location.pathname!=="/")return;
