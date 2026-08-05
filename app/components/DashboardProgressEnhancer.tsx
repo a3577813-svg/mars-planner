@@ -19,7 +19,7 @@ function nonEmptyValuesForPage(page:number,isSenior:boolean){
     if(key.startsWith("mars-planner-attachment:")){
       const seniorNeedle=`senior-p${page}-`;
       const middleNeedle=`middle-p${sourcePage}-`;
-      if((isSenior&&key.includes(seniorNeedle))||key.includes(middleNeedle))values.push(value);
+      if((isSenior&&key.includes(seniorNeedle))||(!isSenior&&key.includes(middleNeedle)))values.push(value);
     }
   }
   return values;
@@ -37,6 +37,18 @@ function statusLabel(status:Status){
   if(status==="done")return"Заполнено";
   if(status==="progress")return"В процессе";
   return"Не начато";
+}
+
+function attachmentCount(isSenior:boolean){
+  const audience=isSenior?"senior-":"middle-";
+  let count=0;
+  for(let i=0;i<localStorage.length;i++){
+    const key=localStorage.key(i)||"";
+    if(!key.startsWith("mars-planner-attachment:"))continue;
+    if(!key.includes(audience)||!key.endsWith(":image"))continue;
+    if((localStorage.getItem(key)||"").trim())count++;
+  }
+  return count;
 }
 
 export default function DashboardProgressEnhancer(){
@@ -67,6 +79,9 @@ export default function DashboardProgressEnhancer(){
       });
 
       const percent=Math.round(done/total*100);
+      const inProgress=Math.max(0,started-done);
+      const notStarted=Math.max(0,total-started);
+      const attachments=attachmentCount(isSenior);
       const primary=root.querySelector<HTMLAnchorElement>("a.primary");
       const currentKey=isSenior?"mars-senior-current-page":"mars-book-current-page";
       const current=Math.min(total,Math.max(1,Number(localStorage.getItem(currentKey)||1)||1));
@@ -81,7 +96,7 @@ export default function DashboardProgressEnhancer(){
           panel.dataset.dashboardProgress="1";
           aside.appendChild(panel);
         }
-        panel.innerHTML=`<p class="eyebrow">ПРОГРЕСС ПЛАНЁРКИ</p><h3>${done} из ${total}</h3><div class="dashboardProgressTrack"><span style="width:${percent}%"></span></div><div class="dashboardProgressMeta"><b>${percent}% заполнено</b><small>${started-done} в процессе</small></div>`;
+        panel.innerHTML=`<p class="eyebrow">МОЙ ПРОГРЕСС</p><div class="dashboardProgressTop"><div><h3>${percent}%</h3><small>планёрки заполнено</small></div><b>${done} из ${total}</b></div><div class="dashboardProgressTrack"><span style="width:${percent}%"></span></div><div class="dashboardProgressStats"><div><span>✓</span><b>${done}</b><small>заполнено</small></div><div><span>◐</span><b>${inProgress}</b><small>в процессе</small></div><div><span>○</span><b>${notStarted}</b><small>не начато</small></div><div><span>▧</span><b>${attachments}</b><small>фото и рисунки</small></div></div>`;
       }
     };
 
@@ -108,11 +123,16 @@ export default function DashboardProgressEnhancer(){
     [data-fill-status="progress"] small{color:#9a6a08!important;font-weight:800}
     [data-fill-status="empty"] small{color:#8b8294!important}
     .dashboardProgressPanel{background:linear-gradient(145deg,#f4effc,#fff)!important;border-color:#d8c8ef!important}
-    .dashboardProgressPanel h3{margin-bottom:12px!important}
+    .dashboardProgressTop{display:flex!important;align-items:flex-end!important;justify-content:space-between!important;gap:16px!important;margin-bottom:12px!important}
+    .dashboardProgressTop h3{margin:0!important;font-size:34px!important;line-height:1!important}
+    .dashboardProgressTop small{display:block!important;margin-top:4px!important;color:#756d7d!important}
+    .dashboardProgressTop>b{padding:7px 10px;border-radius:999px;background:#fff;color:#5b2aac;font-size:12px}
     .dashboardProgressTrack{height:11px;border-radius:999px;background:#e8e0ef;overflow:hidden}
     .dashboardProgressTrack span{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#5e2abb,#ff6547);transition:width .3s ease}
-    .dashboardProgressMeta{display:flex!important;justify-content:space-between;gap:12px;margin-top:9px;color:#6d6375!important;font-size:12px}
-    .dashboardProgressMeta b{color:#4d287f}
-    .dashboardProgressMeta small{font-size:12px}
+    .dashboardProgressStats{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px!important;margin-top:13px!important}
+    .dashboardProgressStats>div{display:grid!important;grid-template-columns:auto 1fr!important;grid-template-rows:auto auto!important;column-gap:8px!important;padding:10px!important;border-radius:14px!important;background:#ffffffc7!important;border:1px solid #ebe2f2!important}
+    .dashboardProgressStats span{grid-row:1/3;width:26px;height:26px;display:grid;place-items:center;border-radius:9px;background:#f1eafa;color:#6132b7;font-weight:900}
+    .dashboardProgressStats b{font-size:17px;color:#41236d;line-height:1}
+    .dashboardProgressStats small{font-size:10px;color:#7e7488;line-height:1.2}
   `}</style>;
 }
