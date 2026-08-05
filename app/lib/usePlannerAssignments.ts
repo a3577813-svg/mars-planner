@@ -12,15 +12,11 @@ import {
   saveAssignments
 } from "./plannerAssignments";
 import type {PlannerAudience} from "./plannerAssignments";
+import {subscribeToStoredKey} from "./plannerStorage";
 
 type AssignmentUpdater=
   |SpreadAssignmentStore
   |((current:SpreadAssignmentStore)=>SpreadAssignmentStore);
-
-function publishAssignments(store:SpreadAssignmentStore){
-  saveAssignments(store);
-  window.dispatchEvent(new CustomEvent("mars-assignments-changed"));
-}
 
 export function usePlannerAssignments(){
   const[assignments,setAssignmentsState]=useState<SpreadAssignmentStore>({});
@@ -33,21 +29,13 @@ export function usePlannerAssignments(){
 
   useEffect(()=>{
     syncFromStorage();
-    const onStorage=(event:StorageEvent)=>{
-      if(event.key===ASSIGNMENTS_STORAGE_KEY)syncFromStorage();
-    };
-    window.addEventListener("storage",onStorage);
-    window.addEventListener("mars-assignments-changed",syncFromStorage);
-    return()=>{
-      window.removeEventListener("storage",onStorage);
-      window.removeEventListener("mars-assignments-changed",syncFromStorage);
-    };
+    return subscribeToStoredKey(ASSIGNMENTS_STORAGE_KEY,syncFromStorage);
   },[syncFromStorage]);
 
   const setAssignments=useCallback((updater:AssignmentUpdater)=>{
     setAssignmentsState(current=>{
       const next=typeof updater==="function"?updater(current):updater;
-      publishAssignments(next);
+      saveAssignments(next);
       return next;
     });
   },[]);
