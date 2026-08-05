@@ -20,12 +20,44 @@ function allowed(role:Role,path:string,search:string){
   return false;
 }
 
+function addMethodistButton(){
+  if(location.pathname!=="/")return;
+  const switcher=document.querySelector<HTMLElement>(".roleSwitch");
+  if(!switcher||switcher.querySelector('[data-methodist-login="1"]'))return;
+  const button=document.createElement("button");
+  button.type="button";
+  button.dataset.methodistLogin="1";
+  button.textContent="Методист";
+  button.onclick=()=>{
+    const form=switcher.parentElement?.querySelector("form");
+    const login=form?.querySelector<HTMLInputElement>('input:not([type="password"])');
+    const password=form?.querySelector<HTMLInputElement>('input[type="password"]');
+    if(login){login.value="methodist";login.dispatchEvent(new Event("input",{bubbles:true}))}
+    if(password){password.value="1234";password.dispatchEvent(new Event("input",{bubbles:true}))}
+    switcher.querySelectorAll("button").forEach(item=>item.classList.remove("selected"));
+    button.classList.add("selected");
+  };
+  switcher.appendChild(button);
+}
+
 export default function RoleAccessControl(){
   useEffect(()=>{
-    if(location.pathname==="/")return;
-    const role=localStorage.getItem("mars-active-account") as Role|null;
-    if(!role){location.replace("/");return}
-    if(!allowed(role,location.pathname,location.search))location.replace(homeFor(role));
+    const guard=()=>{
+      addMethodistButton();
+      if(location.pathname==="/")return;
+      const role=localStorage.getItem("mars-active-account") as Role|null;
+      if(!role){location.replace("/");return}
+      if(!allowed(role,location.pathname,location.search))location.replace(homeFor(role));
+    };
+
+    guard();
+    const observer=new MutationObserver(addMethodistButton);
+    observer.observe(document.body,{childList:true,subtree:true});
+    window.addEventListener("pageshow",addMethodistButton);
+    return()=>{
+      observer.disconnect();
+      window.removeEventListener("pageshow",addMethodistButton);
+    };
   },[]);
   return null;
 }
