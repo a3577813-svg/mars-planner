@@ -6,12 +6,6 @@ export default function LoginRedirect(){
   useEffect(()=>{
     const dashboardFor=(login:string)=>login==="student8"?"/senior":login==="student7"?"/student":"";
 
-    if(location.pathname==="/"){
-      const remembered=localStorage.getItem("mars-active-account")||"";
-      const dashboard=dashboardFor(remembered);
-      if(dashboard){location.replace(dashboard);return}
-    }
-
     const onSubmit=(event:SubmitEvent)=>{
       if(location.pathname!=="/")return;
       const form=event.target;
@@ -26,22 +20,21 @@ export default function LoginRedirect(){
       event.stopPropagation();
       event.stopImmediatePropagation();
       localStorage.setItem("mars-active-account",login);
-      location.replace(dashboard);
+      location.assign(dashboard);
     };
 
-    const keepCorrectDashboard=()=>{
-      if(location.pathname!=="/")return;
-      const dashboard=dashboardFor(localStorage.getItem("mars-active-account")||"");
-      if(dashboard)location.replace(dashboard);
+    const onClick=(event:MouseEvent)=>{
+      const link=(event.target as HTMLElement|null)?.closest<HTMLAnchorElement>('a[href="/"]');
+      if(!link)return;
+      const text=(link.textContent||"").trim().toLowerCase();
+      if(text.includes("выйти"))localStorage.removeItem("mars-active-account");
     };
 
     document.addEventListener("submit",onSubmit,true);
-    window.addEventListener("storage",keepCorrectDashboard);
-    const timer=window.setInterval(keepCorrectDashboard,250);
+    document.addEventListener("click",onClick,true);
     return()=>{
       document.removeEventListener("submit",onSubmit,true);
-      window.removeEventListener("storage",keepCorrectDashboard);
-      window.clearInterval(timer);
+      document.removeEventListener("click",onClick,true);
     };
   },[]);
 
