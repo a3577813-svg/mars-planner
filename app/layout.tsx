@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import "./logo-fix.css";
+import SeniorStorageNamespace from "./components/SeniorStorageNamespace";
 import CustomCheckboxFields from "./components/CustomCheckboxFields";
 import PlannerAttachmentEnhancer from "./components/PlannerAttachmentEnhancer";
 import SeniorFinalSpreadEnhancer from "./components/SeniorFinalSpreadEnhancer";
@@ -18,6 +19,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="ru">
       <body>
+        <SeniorStorageNamespace />
         <LoginRedirect />
         <CustomCheckboxFields />
         <PlannerAttachmentEnhancer />
