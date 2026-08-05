@@ -17,7 +17,6 @@ import DashboardFirstPageDesign from "./components/DashboardFirstPageDesign";
 import DashboardNavigationFix from "./components/DashboardNavigationFix";
 import TutorSpreadReview from "./components/TutorSpreadReview";
 import AdminCalendarLinkEnhancer from "./components/AdminCalendarLinkEnhancer";
-import AdminSpreadLinkEnhancer from "./components/AdminSpreadLinkEnhancer";
 import LoginRedirect from "./components/LoginRedirect";
 import RoleAccessControl from "./components/RoleAccessControl";
 
@@ -48,7 +47,6 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <DashboardNavigationFix />
         <TutorSpreadReview />
         <AdminCalendarLinkEnhancer />
-        <AdminSpreadLinkEnhancer />
         {children}
       </body>
     </html>
