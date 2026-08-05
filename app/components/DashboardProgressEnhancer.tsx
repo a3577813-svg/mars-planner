@@ -3,33 +3,73 @@
 import {useEffect} from "react";
 
 type Status="empty"|"progress"|"done";
+type PageStats={count:number;substantial:number};
 
-function nonEmptyValuesForPage(page:number,isSenior:boolean){
-  const values:string[]=[];
-  const sourcePage=isSenior&&page===44?37:isSenior&&page===45?38:page;
-  const prefixes=isSenior&&page>=29&&page<=43
-    ?[`mars-senior-p${page}-`]
-    :[`mars-book-p${sourcePage}-`];
-
-  for(let i=0;i<localStorage.length;i++){
-    const key=localStorage.key(i)||"";
-    const value=(localStorage.getItem(key)||"").trim();
-    if(!value)continue;
-    if(prefixes.some(prefix=>key.startsWith(prefix)))values.push(value);
-    if(key.startsWith("mars-planner-attachment:")){
-      const seniorNeedle=`senior-p${page}-`;
-      const middleNeedle=`middle-p${sourcePage}-`;
-      if((isSenior&&key.includes(seniorNeedle))||(!isSenior&&key.includes(middleNeedle)))values.push(value);
-    }
-  }
-  return values;
+function emptyStats(total:number){
+  return Array.from({length:total+1},():PageStats=>({count:0,substantial:0}));
 }
 
-function statusFor(page:number,isSenior:boolean):Status{
-  const values=nonEmptyValuesForPage(page,isSenior);
-  if(values.length===0)return"empty";
-  const substantial=values.filter(value=>value.length>=18).length;
-  if(values.length>=3||substantial>=2)return"done";
+function pageFromKey(key:string,isSenior:boolean){
+  if(isSenior){
+    const unique=key.match(/^mars-senior-p(\d+)-/);
+    if(unique)return Number(unique[1]);
+    const shared=key.match(/^mars-senior-shared-p(\d+)-/);
+    if(shared)return Number(shared[1]);
+  }else{
+    const middle=key.match(/^mars-book-p(\d+)-/);
+    if(middle)return Number(middle[1]);
+  }
+  return 0;
+}
+
+function attachmentPage(key:string,isSenior:boolean){
+  const pattern=isSenior?/mars-planner-attachment:senior-p(\d+)-/:/mars-planner-attachment:middle-p(\d+)-/;
+  const match=key.match(pattern);
+  return match?Number(match[1]):0;
+}
+
+function collectStats(total:number,isSenior:boolean){
+  const stats=emptyStats(total);
+  let attachments=0;
+
+  // LocalStorage is scanned only once. Image values can be very large, so they
+  // are read only for the matching audience and never once per planner page.
+  for(let i=0;i<localStorage.length;i++){
+    const key=localStorage.key(i)||"";
+    const attachment=attachmentPage(key,isSenior);
+    if(attachment){
+      if(key.endsWith(":image")){
+        const value=localStorage.getItem(key)||"";
+        if(value){
+          attachments++;
+          if(attachment<=total){stats[attachment].count++;stats[attachment].substantial++}
+        }
+      }else if(key.endsWith(":caption")){
+        const value=(localStorage.getItem(key)||"").trim();
+        if(value&&attachment<=total){stats[attachment].count++;if(value.length>=18)stats[attachment].substantial++}
+      }
+      continue;
+    }
+
+    const page=pageFromKey(key,isSenior);
+    if(!page||page>total)continue;
+    const value=(localStorage.getItem(key)||"").trim();
+    if(!value)continue;
+    stats[page].count++;
+    if(value.length>=18)stats[page].substantial++;
+  }
+
+  // Senior pages 44 and 45 use shared templates 37 and 38.
+  if(isSenior){
+    stats[44]={...stats[37]};
+    stats[45]={...stats[38]};
+  }
+  return{stats,attachments};
+}
+
+function statusFor(stat:PageStats):Status{
+  if(stat.count===0)return"empty";
+  if(stat.count>=3||stat.substantial>=2)return"done";
   return"progress";
 }
 
@@ -39,20 +79,11 @@ function statusLabel(status:Status){
   return"Не начато";
 }
 
-function attachmentCount(isSenior:boolean){
-  const audience=isSenior?"senior-":"middle-";
-  let count=0;
-  for(let i=0;i<localStorage.length;i++){
-    const key=localStorage.key(i)||"";
-    if(!key.startsWith("mars-planner-attachment:"))continue;
-    if(!key.includes(audience)||!key.endsWith(":image"))continue;
-    if((localStorage.getItem(key)||"").trim())count++;
-  }
-  return count;
-}
-
 export default function DashboardProgressEnhancer(){
   useEffect(()=>{
+    let frame=0;
+    let timer=0;
+
     const enhance=()=>{
       const isSenior=location.pathname==="/senior";
       const isJunior=location.pathname==="/student";
@@ -61,8 +92,10 @@ export default function DashboardProgressEnhancer(){
       const total=isSenior?45:38;
       const root=document.querySelector<HTMLElement>(isSenior?"main.senior":"main.studentCabinet");
       if(!root)return;
-
       const links=Array.from(root.querySelectorAll<HTMLAnchorElement>(isSenior?".list>a":".routeList>a"));
+      if(!links.length)return;
+
+      const{stats,attachments}=collectStats(total,isSenior);
       let done=0;
       let started=0;
 
@@ -70,48 +103,57 @@ export default function DashboardProgressEnhancer(){
         const numberElement=link.querySelector<HTMLElement>(isSenior?":scope>b":".num");
         const page=Number(numberElement?.textContent||0);
         if(!page)return;
-        const status=statusFor(page,isSenior);
+        const status=statusFor(stats[page]||{count:0,substantial:0});
         if(status==="done")done++;
         if(status!=="empty")started++;
-        link.dataset.fillStatus=status;
+        if(link.dataset.fillStatus!==status)link.dataset.fillStatus=status;
         const small=link.querySelector<HTMLElement>("small");
-        if(small)small.textContent=statusLabel(status);
+        const label=statusLabel(status);
+        if(small&&small.textContent!==label)small.textContent=label;
       });
 
       const percent=Math.round(done/total*100);
       const inProgress=Math.max(0,started-done);
       const notStarted=Math.max(0,total-started);
-      const attachments=attachmentCount(isSenior);
       const primary=root.querySelector<HTMLAnchorElement>("a.primary");
       const currentKey=isSenior?"mars-senior-current-page":"mars-book-current-page";
       const current=Math.min(total,Math.max(1,Number(localStorage.getItem(currentKey)||1)||1));
-      if(primary)primary.textContent=`Продолжить с разворота ${current} →`;
+      const primaryText=`Продолжить с разворота ${current} →`;
+      if(primary&&primary.textContent!==primaryText)primary.textContent=primaryText;
 
       const aside=root.querySelector<HTMLElement>("aside");
-      if(aside){
-        let panel=aside.querySelector<HTMLElement>("[data-dashboard-progress]");
-        if(!panel){
-          panel=document.createElement("section");
-          panel.className="panel dashboardProgressPanel";
-          panel.dataset.dashboardProgress="1";
-          aside.appendChild(panel);
-        }
-        panel.innerHTML=`<p class="eyebrow">МОЙ ПРОГРЕСС</p><div class="dashboardProgressTop"><div><h3>${percent}%</h3><small>планёрки заполнено</small></div><b>${done} из ${total}</b></div><div class="dashboardProgressTrack"><span style="width:${percent}%"></span></div><div class="dashboardProgressStats"><div><span>✓</span><b>${done}</b><small>заполнено</small></div><div><span>◐</span><b>${inProgress}</b><small>в процессе</small></div><div><span>○</span><b>${notStarted}</b><small>не начато</small></div><div><span>▧</span><b>${attachments}</b><small>фото и рисунки</small></div></div>`;
+      if(!aside)return;
+      let panel=aside.querySelector<HTMLElement>("[data-dashboard-progress]");
+      if(!panel){
+        panel=document.createElement("section");
+        panel.className="panel dashboardProgressPanel";
+        panel.dataset.dashboardProgress="1";
+        aside.appendChild(panel);
       }
+      const signature=`${percent}:${done}:${inProgress}:${notStarted}:${attachments}:${total}`;
+      if(panel.dataset.signature===signature)return;
+      panel.dataset.signature=signature;
+      panel.innerHTML=`<p class="eyebrow">МОЙ ПРОГРЕСС</p><div class="dashboardProgressTop"><div><h3>${percent}%</h3><small>планёрки заполнено</small></div><b>${done} из ${total}</b></div><div class="dashboardProgressTrack"><span style="width:${percent}%"></span></div><div class="dashboardProgressStats"><div><span>✓</span><b>${done}</b><small>заполнено</small></div><div><span>◐</span><b>${inProgress}</b><small>в процессе</small></div><div><span>○</span><b>${notStarted}</b><small>не начато</small></div><div><span>▧</span><b>${attachments}</b><small>фото и рисунки</small></div></div>`;
     };
 
-    enhance();
-    const onStorage=()=>requestAnimationFrame(enhance);
-    const onFocus=()=>requestAnimationFrame(enhance);
+    const schedule=(delay=0)=>{
+      window.clearTimeout(timer);
+      cancelAnimationFrame(frame);
+      timer=window.setTimeout(()=>{frame=requestAnimationFrame(enhance)},delay);
+    };
+
+    // Let the dashboard render first, then calculate statistics without
+    // blocking the initial paint.
+    schedule(40);
+    const onStorage=()=>schedule(80);
+    const onFocus=()=>schedule(20);
     window.addEventListener("storage",onStorage);
     window.addEventListener("focus",onFocus);
-    document.addEventListener("input",onStorage,true);
-    document.addEventListener("change",onStorage,true);
     return()=>{
+      window.clearTimeout(timer);
+      cancelAnimationFrame(frame);
       window.removeEventListener("storage",onStorage);
       window.removeEventListener("focus",onFocus);
-      document.removeEventListener("input",onStorage,true);
-      document.removeEventListener("change",onStorage,true);
     };
   },[]);
 
