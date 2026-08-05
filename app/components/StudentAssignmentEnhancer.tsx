@@ -4,7 +4,6 @@ import {useEffect} from "react";
 
 type Assignment={week?:string;start?:string;end?:string;visible?:boolean};
 type AssignmentStore=Record<string,Assignment>;
-
 type Audience="middle"|"senior";
 
 function readStore():AssignmentStore{
@@ -53,8 +52,8 @@ export default function StudentAssignmentEnhancer(){
       const root=document.querySelector<HTMLElement>(dashboardAudience==="middle"?"main.studentCabinet":"main.senior");
       if(!root)return;
       const links=Array.from(root.querySelectorAll<HTMLAnchorElement>(dashboardAudience==="middle"?".routeList>a":".list>a"));
-      let preferred:HTMLAnchorElement|null=null;
-      let firstOpen:HTMLAnchorElement|null=null;
+      const openLinks:HTMLAnchorElement[]=[];
+      const currentLinks:HTMLAnchorElement[]=[];
       links.forEach((link,index)=>{
         const n=index+1;
         const assignment=store[`${dashboardAudience}:${n}`]||{};
@@ -69,12 +68,12 @@ export default function StudentAssignmentEnhancer(){
           link.tabIndex=-1;
           link.addEventListener("click",event=>{event.preventDefault();event.stopImmediatePropagation()},true);
         }else{
-          if(!firstOpen)firstOpen=link;
-          if(!preferred&&isCurrent(assignment,today))preferred=link;
+          openLinks.push(link);
+          if(isCurrent(assignment,today))currentLinks.push(link);
         }
       });
 
-      const target=preferred||firstOpen;
+      const target=currentLinks[0]??openLinks[0];
       if(target){
         const primary=root.querySelector<HTMLAnchorElement>(".hero a.primary");
         const focus=root.querySelector<HTMLAnchorElement>("aside .accent a");
