@@ -10,6 +10,7 @@ import PlannerSaveStatus from "./components/PlannerSaveStatus";
 import PlannerDesktopEnhancer from "./components/PlannerDesktopEnhancer";
 import DashboardProgressEnhancer from "./components/DashboardProgressEnhancer";
 import DashboardLiveHeader from "./components/DashboardLiveHeader";
+import DashboardCalendar from "./components/DashboardCalendar";
 import LoginRedirect from "./components/LoginRedirect";
 
 export const metadata: Metadata = {
@@ -31,6 +32,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <PlannerDesktopEnhancer />
         <DashboardProgressEnhancer />
         <DashboardLiveHeader />
+        <DashboardCalendar />
         {children}
       </body>
     </html>
