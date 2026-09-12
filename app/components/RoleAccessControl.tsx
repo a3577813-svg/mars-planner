@@ -12,6 +12,7 @@ function allowed(role:Role,path:string,search:string){
   const adminEditMode=params.get("mode")==="admin-edit";
   const senior=params.get("senior")==="1";
   if(path==="/")return true;
+  if(path==="/senior/cabinet-preview")return true;
   if(role==="admin")return path.startsWith("/admin")||(path.startsWith("/book")&&adminEditMode)||(path.startsWith("/senior/unique")&&adminEditMode);
   if(role==="methodist")return path.startsWith("/methodist")||((path.startsWith("/book")||path.startsWith("/senior/unique"))&&params.get("mode")==="methodist");
   if(role==="teacher")return path.startsWith("/teacher")||(path.startsWith("/book")&&teacherMode)||(path.startsWith("/senior/unique")&&teacherMode);
