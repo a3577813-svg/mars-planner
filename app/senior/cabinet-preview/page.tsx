@@ -13,7 +13,7 @@ export default function CabinetPreview(){
   <div className="dashboard">
    <div className="topGrid">
     <section className="hero">
-     <img src="/cabinet-hero-8-11.svg" alt="" className="heroImage"/>
+     <img src="/cabinet-hero-final.jpg" alt="" className="heroImage"/>
      <div className="heroOverlay"/>
      <div className="heroCopy"><span>Сейчас ты на развороте</span><h1>14. Проект в работе</h1><p>Опиши свой проект, над которым работаешь,<br/>и планируй следующие шаги.</p><button className="heroButton">Продолжить заполнение <b>→</b></button></div>
      <div className="heroWords">ИДЕИ<br/>ЛЮДИ<br/>ПРОЕКТЫ<br/>БУДУЩЕЕ</div>
