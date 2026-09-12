@@ -2,42 +2,75 @@
 
 import {useCallback,useEffect,useState} from "react";
 import {
-  ASSIGNMENTS_STORAGE_KEY,
   SpreadAssignment,
   SpreadAssignmentStore,
   assignmentFor,
   assignmentKey,
-  emptySpreadAssignment,
-  readAssignments,
-  saveAssignments
+  emptySpreadAssignment
 } from "./plannerAssignments";
 import type {PlannerAudience} from "./plannerAssignments";
-import {subscribeToStoredKey} from "./plannerStorage";
 
 type AssignmentUpdater=
   |SpreadAssignmentStore
   |((current:SpreadAssignmentStore)=>SpreadAssignmentStore);
 
-export function usePlannerAssignments(){
+export function usePlannerAssignments(enabled=true){
   const[assignments,setAssignmentsState]=useState<SpreadAssignmentStore>({});
   const[ready,setReady]=useState(false);
 
-  const syncFromStorage=useCallback(()=>{
-    setAssignmentsState(readAssignments());
-    setReady(true);
-  },[]);
+  const loadAssignments=useCallback(async()=>{if(!enabled)return;
+    try{
+      const audiences:PlannerAudience[]=["middle","senior"];
+
+      const responses=await Promise.all(
+        audiences.map(async audience=>{
+          const response=await fetch(
+            `/api/spread-assignments?audience=${audience}`,
+            {cache:"no-store"}
+          );
+
+          const data=await response.json();
+
+          if(!response.ok||!data?.ok||!Array.isArray(data.assignments)){
+            return[];
+          }
+
+          return data.assignments.map((item:any)=>({
+            key:assignmentKey(audience,Number(item.page)),
+            assignment:{
+              week:item.week||"",
+              start:item.start||"",
+              end:item.end||"",
+              visible:item.visible!==false
+            } as SpreadAssignment
+          }));
+        })
+      );
+
+      const next:SpreadAssignmentStore={};
+
+      for(const group of responses){
+        for(const item of group){
+          next[item.key]=item.assignment;
+        }
+      }
+
+      setAssignmentsState(next);
+    }catch(error){
+      console.error("Failed to load spread assignments",error);
+    }finally{
+      setReady(true);
+    }
+  },[enabled]);
 
   useEffect(()=>{
-    syncFromStorage();
-    return subscribeToStoredKey(ASSIGNMENTS_STORAGE_KEY,syncFromStorage);
-  },[syncFromStorage]);
+    loadAssignments();
+  },[loadAssignments]);
 
   const setAssignments=useCallback((updater:AssignmentUpdater)=>{
-    setAssignmentsState(current=>{
-      const next=typeof updater==="function"?updater(current):updater;
-      saveAssignments(next);
-      return next;
-    });
+    setAssignmentsState(current=>
+      typeof updater==="function"?updater(current):updater
+    );
   },[]);
 
   const updateAssignment=useCallback((
@@ -48,6 +81,7 @@ export function usePlannerAssignments(){
     setAssignments(current=>{
       const key=assignmentKey(audience,page);
       const previous=assignmentFor(current,audience,page);
+
       return{
         ...current,
         [key]:{
@@ -59,7 +93,10 @@ export function usePlannerAssignments(){
     });
   },[setAssignments]);
 
-  const resetAssignment=useCallback((audience:PlannerAudience,page:number)=>{
+  const resetAssignment=useCallback((
+    audience:PlannerAudience,
+    page:number
+  )=>{
     setAssignments(current=>{
       const next={...current};
       delete next[assignmentKey(audience,page)];

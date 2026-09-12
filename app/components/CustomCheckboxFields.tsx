@@ -9,28 +9,31 @@ function keyFor(label:HTMLLabelElement,index:number,text:string){
   return `mars-custom-option:${location.pathname}:${new URLSearchParams(location.search).get("page")||""}:${index}:${normalize(text).slice(0,80)}`;
 }
 
+function plannerHref(path:string,page:number,isSenior=false){
+  const params=new URLSearchParams(location.search);
+  params.set("page",String(page));
+  if(!params.get("mode"))params.set("mode","student");
+  if(isSenior)params.set("senior","1");else params.delete("senior");
+  return `${path}?${params.toString()}`;
+}
+
 function juniorHref(page:number){
-  if(page<=12)return `/book?page=${page}&mode=student`;
-  if(page<=15)return `/book-next?page=${page}&mode=student`;
-  if(page<=18)return `/book-next2?page=${page}&mode=student`;
-  if(page<=21)return `/book-next3?page=${page}&mode=student`;
-  if(page<=24)return `/book-next4?page=${page}&mode=student`;
-  if(page<=27)return `/book-next5?page=${page}&mode=student`;
-  if(page<=30)return `/book-next6?page=${page}&mode=student`;
-  if(page<=33)return `/book-next7?page=${page}&mode=student`;
-  if(page<=36)return `/book-next8?page=${page}&mode=student`;
-  return `/book-next9?page=${page}&mode=student`;
+  const path=page<=12?"/book":page<=15?"/book-next":page<=18?"/book-next2":page<=21?"/book-next3":page<=24?"/book-next4":page<=27?"/book-next5":page<=30?"/book-next6":page<=33?"/book-next7":page<=36?"/book-next8":"/book-next9";
+  return plannerHref(path,page,false);
 }
 
 function seniorHref(page:number){
-  if(page<=28)return `${juniorHref(page)}&senior=1`;
-  if(page<=31)return `/senior/unique?page=${page}`;
-  if(page<=34)return `/senior/unique2?page=${page}`;
-  if(page<=37)return `/senior/unique3?page=${page}`;
-  if(page<=40)return `/senior/unique4?page=${page}`;
-  if(page<=43)return `/senior/unique5?page=${page}`;
-  if(page===44)return `/book-next9?page=37&mode=student&senior=1`;
-  return `/book-next9?page=38&mode=student&senior=1`;
+  if(page<=28){
+    const path=page<=12?"/book":page<=15?"/book-next":page<=18?"/book-next2":page<=21?"/book-next3":page<=24?"/book-next4":page<=27?"/book-next5":"/book-next6";
+    return plannerHref(path,page,true);
+  }
+  if(page<=31)return plannerHref("/senior/unique",page,true);
+  if(page<=34)return plannerHref("/senior/unique2",page,true);
+  if(page<=37)return plannerHref("/senior/unique3",page,true);
+  if(page<=40)return plannerHref("/senior/unique4",page,true);
+  if(page<=43)return plannerHref("/senior/unique5",page,true);
+  if(page===44)return plannerHref("/book-next9",37,true);
+  return plannerHref("/book-next9",38,true);
 }
 
 function plannerContext(){
@@ -159,13 +162,6 @@ export default function CustomCheckboxFields(){
       const context=plannerContext();
       if(!context)return;
 
-      if(target.dataset.seniorRoute==="1"){
-        event.preventDefault();
-        event.stopPropagation();
-        event.stopImmediatePropagation();
-        location.href="/senior";
-        return;
-      }
 
       const direction=target.dataset.plannerNext==="1"?1:target.dataset.plannerPrevious==="1"?-1:0;
       if(!direction)return;
@@ -187,11 +183,11 @@ export default function CustomCheckboxFields(){
     };
 
     enhance();
-    const observer=new MutationObserver(()=>requestAnimationFrame(enhance));
-    observer.observe(document.body,{childList:true,subtree:true});
+//    const observer=new MutationObserver(()=>requestAnimationFrame(enhance));
+//    observer.observe(document.body,{childList:true,subtree:true});
     document.addEventListener("click",handlePlannerNavigation,true);
     window.addEventListener("popstate",enhance);
-    return()=>{observer.disconnect();document.removeEventListener("click",handlePlannerNavigation,true);window.removeEventListener("popstate",enhance)};
+    return()=>{document.removeEventListener("click",handlePlannerNavigation,true);window.removeEventListener("popstate",enhance)};
   },[]);
 
   return <style jsx global>{`

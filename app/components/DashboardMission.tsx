@@ -92,14 +92,14 @@ export default function DashboardMission(){
     window.addEventListener("storage",refresh);
     document.addEventListener("input",refresh,true);
     document.addEventListener("change",refresh,true);
-    const observer=new MutationObserver(refresh);
-    observer.observe(document.body,{childList:true,subtree:true});
+//     const observer=new MutationObserver(refresh);
+//     observer.observe(document.body,{childList:true,subtree:true});
     return()=>{
       window.removeEventListener("focus",refresh);
       window.removeEventListener("storage",refresh);
       document.removeEventListener("input",refresh,true);
       document.removeEventListener("change",refresh,true);
-      observer.disconnect();
+//       observer.disconnect();
     };
   },[]);
 

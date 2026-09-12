@@ -16,7 +16,7 @@ function hrefPage(path:string,search:string,audience:PlannerAudience){
 }
 
 export default function StudentAssignmentEnhancer(){
-  const{assignments}=usePlannerAssignments();
+  const{assignments}=usePlannerAssignments(typeof window!=="undefined"&&!window.location.pathname.startsWith("/admin"));
 
   useEffect(()=>{
     const today=new Date();
@@ -66,6 +66,9 @@ export default function StudentAssignmentEnhancer(){
       return;
     }
 
+    const params=new URLSearchParams(location.search);
+    const mode=params.get("mode");
+    if(mode==="teacher"||mode==="methodist"||mode==="admin-edit"||params.get("pdf")==="1")return;
     if(role!=="student7"&&role!=="student8")return;
     const audience:PlannerAudience=role==="student8"?"senior":"middle";
     const plannerPath=location.pathname.startsWith("/book")||location.pathname.startsWith("/senior/unique");

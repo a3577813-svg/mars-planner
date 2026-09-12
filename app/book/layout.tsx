@@ -2,11 +2,11 @@
 
 import {ReactNode,useEffect,useMemo,useState} from "react";
 
-type BookMode="student"|"teacher"|"admin"|"view";
+type BookMode="student"|"teacher"|"methodist"|"admin"|"view";
 type EditableBlock={index:number;title:string;text:string};
 
 const selector=[".miniNote",".sourceCard",".quoteCard",".storyCard",".callout",".smartQuote",".bottomQuote",".compactNote"].join(",");
-const labels:Record<BookMode,string>={student:"Ученик",teacher:"Педагог",admin:"Администратор-методист",view:"Только просмотр"};
+const labels:Record<BookMode,string>={student:"Ученик",teacher:"Педагог",methodist:"Методист",admin:"Администратор-методист",view:"Только просмотр"};
 
 function currentPage(){if(typeof window==="undefined")return 1;return Number(new URLSearchParams(window.location.search).get("page")||localStorage.getItem("mars-book-current-page")||"1")||1}
 function storageKey(page:number,index:number,field:"title"|"text"){return `mars-book-callout-p${page}-${index}-${field}`}
@@ -15,7 +15,7 @@ function applyOverrides(){const page=currentPage();const nodes=Array.from(docume
 
 export default function BookLayout({children}:{children:ReactNode}){
  const[mode,setMode]=useState<BookMode>("student"),[preview,setPreview]=useState(false),[open,setOpen]=useState(false),[page,setPage]=useState(1),[blocks,setBlocks]=useState<EditableBlock[]>([]),[teacherComment,setTeacherComment]=useState("");
- useEffect(()=>{const params=new URLSearchParams(window.location.search);const raw=params.get("mode") as BookMode|null;const next:BookMode=raw&&["student","teacher","admin","view"].includes(raw)?raw:(params.get("admin")==="1"?"admin":"student");setMode(next);const refresh=()=>{setPage(currentPage());applyOverrides();setBlocks(collectBlocks())};refresh();const observer=new MutationObserver(()=>requestAnimationFrame(refresh));observer.observe(document.body,{childList:true,subtree:true});const timer=window.setInterval(refresh,700);window.addEventListener("popstate",refresh);return()=>{observer.disconnect();window.clearInterval(timer);window.removeEventListener("popstate",refresh)}},[]);
+ useEffect(()=>{const params=new URLSearchParams(window.location.search);const raw=params.get("mode") as BookMode|null;const next:BookMode=raw&&["student","teacher","methodist","admin","view"].includes(raw)?raw:(params.get("admin")==="1"?"admin":"student");setMode(next);const refresh=()=>{setPage(currentPage());applyOverrides();setBlocks(collectBlocks())};refresh();const observer=new MutationObserver(()=>requestAnimationFrame(refresh));observer.observe(document.body,{childList:true,subtree:true});const timer=window.setInterval(refresh,700);window.addEventListener("popstate",refresh);return()=>{observer.disconnect();window.clearInterval(timer);window.removeEventListener("popstate",refresh)}},[]);
  const effectiveMode:BookMode=preview?"view":mode;const editable=useMemo(()=>blocks,[blocks]);
  useEffect(()=>{document.documentElement.dataset.bookMode=effectiveMode;const saved=localStorage.getItem(`mars-teacher-comment-p${page}`)||"";setTeacherComment(saved);return()=>{delete document.documentElement.dataset.bookMode}},[effectiveMode,page]);
  function save(index:number,field:"title"|"text",value:string){localStorage.setItem(storageKey(page,index,field),value);setBlocks(list=>list.map(item=>item.index===index?{...item,[field]:value}:item));requestAnimationFrame(applyOverrides)}

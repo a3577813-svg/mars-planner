@@ -92,9 +92,6 @@ export default function DashboardLiveHeader(){
   };
 
   apply();
-  const observer=new MutationObserver(()=>requestAnimationFrame(apply));
-  observer.observe(document.body,{childList:true,subtree:true});
-  return()=>observer.disconnect();
  },[]);
 
  return <style jsx global>{`

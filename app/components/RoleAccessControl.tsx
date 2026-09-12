@@ -13,7 +13,7 @@ function allowed(role:Role,path:string,search:string){
   const senior=params.get("senior")==="1";
   if(path==="/")return true;
   if(role==="admin")return path.startsWith("/admin")||(path.startsWith("/book")&&adminEditMode)||(path.startsWith("/senior/unique")&&adminEditMode);
-  if(role==="methodist")return path.startsWith("/methodist");
+  if(role==="methodist")return path.startsWith("/methodist")||((path.startsWith("/book")||path.startsWith("/senior/unique"))&&params.get("mode")==="methodist");
   if(role==="teacher")return path.startsWith("/teacher")||(path.startsWith("/book")&&teacherMode)||(path.startsWith("/senior/unique")&&teacherMode);
   if(role==="student7")return path==="/student"||(path.startsWith("/book")&&!senior&&!teacherMode&&!adminEditMode);
   if(role==="student8")return path==="/senior"||path.startsWith("/senior/unique")||(path.startsWith("/book")&&senior&&!teacherMode&&!adminEditMode);
@@ -31,9 +31,7 @@ function addMethodistButton(){
   button.onclick=()=>{
     const form=switcher.parentElement?.querySelector("form");
     const login=form?.querySelector<HTMLInputElement>('input:not([type="password"])');
-    const password=form?.querySelector<HTMLInputElement>('input[type="password"]');
     if(login){login.value="methodist";login.dispatchEvent(new Event("input",{bubbles:true}))}
-    if(password){password.value="1234";password.dispatchEvent(new Event("input",{bubbles:true}))}
     switcher.querySelectorAll("button").forEach(item=>item.classList.remove("selected"));
     button.classList.add("selected");
   };

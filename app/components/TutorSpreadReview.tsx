@@ -4,6 +4,12 @@ import {useEffect,useState} from "react";
 
 type ReviewStatus="great"|"revise"|"talk"|"";
 
+type MethodistComment={
+ comment:string;
+ author:string;
+ updatedAt:string|null;
+};
+
 const statusOptions:[ReviewStatus,string,string][]=[
  ["great","Отлично","✓"],
  ["revise","Доработать","↻"],
@@ -30,6 +36,7 @@ export default function TutorSpreadReview(){
  const[status,setStatus]=useState<ReviewStatus>("");
  const[comment,setComment]=useState("");
  const[saved,setSaved]=useState(false);
+ const[methodistComments,setMethodistComments]=useState<MethodistComment[]>([]);
 
  useEffect(()=>{
   const c=context();
@@ -38,6 +45,22 @@ export default function TutorSpreadReview(){
   setMode(c.mode);setStudent(c.student);setPage(c.page);
   setStatus((localStorage.getItem(key(c.student,c.page,"status"))||"") as ReviewStatus);
   setComment(localStorage.getItem(key(c.student,c.page,"comment"))||"");
+
+  if(c.mode==="methodist"){
+   const studentId=new URLSearchParams(location.search).get("student")||"";
+   if(studentId){
+    fetch("/api/staff/student?student="+encodeURIComponent(studentId),{cache:"no-store"})
+     .then(r=>r.json())
+     .then(data=>{
+      if(data.ok&&Array.isArray(data.student?.comments)){
+       setMethodistComments(data.student.comments);
+      }
+     })
+     .finally(()=>setReady(true));
+    return;
+   }
+  }
+
   setReady(true);
  },[]);
 
@@ -50,6 +73,17 @@ export default function TutorSpreadReview(){
   setSaved(true);window.setTimeout(()=>setSaved(false),1200);
  };
  const selected=statusOptions.find(item=>item[0]===status);
+
+ if(mode==="methodist"){
+  if(!methodistComments.length)return null;
+  return <aside className="studentTutorFeedback neutral">
+   <p>КОММЕНТАРИИ ТЬЮТОРА</p>
+   {methodistComments.map((item,index)=><div key={index} style={{marginTop:index?14:0}}>
+    <strong style={{display:"block",marginBottom:4,color:"#432172"}}>{item.author||"Тьютор"}</strong>
+    <div style={{whiteSpace:"pre-wrap",lineHeight:1.5}}>{item.comment}</div>
+   </div>)}
+  </aside>;
+ }
 
  if(mode!=="teacher"){
   if(!status&&!comment.trim())return null;

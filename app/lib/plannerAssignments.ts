@@ -1,4 +1,3 @@
-import {readJson,writeJson} from "./plannerStorage";
 
 export type PlannerAudience="middle"|"senior";
 
@@ -11,7 +10,6 @@ export type SpreadAssignment={
 
 export type SpreadAssignmentStore=Record<string,SpreadAssignment>;
 
-export const ASSIGNMENTS_STORAGE_KEY="mars-spread-assignments";
 
 export function emptySpreadAssignment():SpreadAssignment{
   return{week:"",start:"",end:"",visible:true};
@@ -21,14 +19,6 @@ export function assignmentKey(audience:PlannerAudience,page:number):string{
   return`${audience}:${page}`;
 }
 
-export function readAssignments():SpreadAssignmentStore{
-  const parsed=readJson<SpreadAssignmentStore>(ASSIGNMENTS_STORAGE_KEY,{});
-  return parsed&&typeof parsed==="object"?parsed:{};
-}
-
-export function saveAssignments(store:SpreadAssignmentStore):void{
-  writeJson(ASSIGNMENTS_STORAGE_KEY,store);
-}
 
 export function assignmentFor(store:SpreadAssignmentStore,audience:PlannerAudience,page:number):SpreadAssignment{
   return{...emptySpreadAssignment(),...(store[assignmentKey(audience,page)]||{})};

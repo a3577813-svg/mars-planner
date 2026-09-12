@@ -34,10 +34,10 @@ export default function SeniorSpreadCountEnhancer(){
     };
 
     enhance();
-    const observer=new MutationObserver(()=>requestAnimationFrame(enhance));
-    observer.observe(document.body,{childList:true,subtree:true,characterData:true});
+//    const observer=new MutationObserver(()=>requestAnimationFrame(enhance));
+//    observer.observe(document.body,{childList:true,subtree:true,characterData:true});
     window.addEventListener("popstate",enhance);
-    return()=>{observer.disconnect();window.removeEventListener("popstate",enhance)};
+    return()=>{window.removeEventListener("popstate",enhance)};
   },[]);
   return null;
 }

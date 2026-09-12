@@ -1,0 +1,13 @@
+.env
+.env.*
+!.env.example
+node_modules/
+.next/
+storage/
+*.log
+
+# Local backups and generated files
+*.backup
+*.before-*
+tsconfig.tsbuildinfo
+serial_setup.sh

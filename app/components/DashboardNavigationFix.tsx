@@ -5,17 +5,17 @@ import {useEffect} from "react";
 export default function DashboardNavigationFix(){
   useEffect(()=>{
     const onClick=(event:MouseEvent)=>{
-      const target=event.target as Element|null;
-      const link=target?.closest<HTMLAnchorElement>("main.studentCabinet .routeList a,main.senior .list a,main.studentCabinet a.primary,main.senior a.primary,main.studentCabinet .panel a,main.senior .panel a");
+      if(location.pathname!=="/senior")return;
+      const links=Array.from(document.querySelectorAll<HTMLAnchorElement>("main.senior a[href]"));
+      const link=links.find(a=>{const r=a.getBoundingClientRect();return event.clientX>=r.left&&event.clientX<=r.right&&event.clientY>=r.top&&event.clientY<=r.bottom;});
       if(!link)return;
       const href=link.getAttribute("href");
       if(!href||href.startsWith("#"))return;
-      event.preventDefault();
-      event.stopPropagation();
-      window.location.assign(href);
+      window.location.href=href;
     };
-    document.addEventListener("click",onClick,true);
-    return()=>document.removeEventListener("click",onClick,true);
+
+    window.addEventListener("click",onClick,true);
+    return()=>window.removeEventListener("click",onClick,true);
   },[]);
 
   return <style jsx global>{`

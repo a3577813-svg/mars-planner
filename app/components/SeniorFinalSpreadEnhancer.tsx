@@ -31,7 +31,18 @@ export default function SeniorFinalSpreadEnhancer(){
       if(center)center.textContent=`${seniorPage} / 45`;
 
       const prev=footer.querySelector<HTMLAnchorElement>("a.button");
-      if(prev)prev.href=raw===37?"/senior/unique5?page=43":"/book-next9?page=37&mode=student&senior=1";
+      if(prev){
+  if(raw===37){
+    const backParams=new URLSearchParams(location.search);
+    backParams.set("page","43");
+    prev.href=`/senior/unique5?${backParams.toString()}`;
+  }else{
+    const backParams=new URLSearchParams(location.search);
+    backParams.set("page","37");
+    backParams.set("senior","1");
+    prev.href=`/book-next9?${backParams.toString()}`;
+  }
+}
 
       const next=footer.querySelector<HTMLButtonElement>("button");
       if(next){
@@ -47,7 +58,10 @@ export default function SeniorFinalSpreadEnhancer(){
       if(!target)return;
       event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();
       localStorage.setItem("mars-senior-current-page","45");
-      location.href="/book-next9?page=38&mode=student&senior=1";
+      const nextParams=new URLSearchParams(location.search);
+      nextParams.set("page","38");
+      nextParams.set("senior","1");
+      location.href=`/book-next9?${nextParams.toString()}`;
     };
 
     enhance();
