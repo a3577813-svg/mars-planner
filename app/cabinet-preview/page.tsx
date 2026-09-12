@@ -2,57 +2,29 @@
 
 import CabinetShell from "../components/cabinet/CabinetShell";
 
-export default function CabinetPreview(){
-  return <CabinetShell
-    roleLabel="Кабинет ученика"
-    title="Мой маршрут"
-    activeHref="/cabinet-preview"
-    nav={[
-      {href:"/cabinet-preview",label:"Обзор",icon:"⌂"},
-      {href:"#route",label:"Мой маршрут",icon:"↗"},
-      {href:"#planner",label:"Планёрка",icon:"▤"},
-      {href:"#feedback",label:"Обратная связь",icon:"◌"},
-    ]}
-    action={<button className="cabinetSecondary">Выйти</button>}
-  >
-    <div className="cabinetGrid" style={{gridTemplateColumns:"1.45fr .75fr"}}>
-      <section className="cabinetCard pad" style={{minHeight:270}}>
-        <p className="cabinetEyebrow">Мой проектный маршрут</p>
-        <h2 style={{fontSize:38,lineHeight:1.05,marginBottom:12}}>Продолжаем путь?</h2>
-        <p style={{maxWidth:620,marginBottom:26}}>Здесь собраны твои текущие задачи, прогресс и следующий шаг. Не нужно искать, где остановился — маршрут ведёт тебя дальше.</p>
-        <div style={{display:"flex",gap:10,alignItems:"center",flexWrap:"wrap"}}>
-          <button className="cabinetPrimary">Продолжить маршрут →</button>
-          <span style={{fontSize:12,color:"#806b92",fontWeight:800}}>Разворот 14 · в работе</span>
-        </div>
-      </section>
-      <section className="cabinetCard pad" style={{display:"grid",placeItems:"center",textAlign:"center"}}>
-        <div style={{width:128,height:128,borderRadius:"50%",display:"grid",placeItems:"center",background:"#f1eafa",border:"10px solid #e1d3f0"}}>
-          <div><strong style={{display:"block",fontSize:34,color:"#5c2a9f"}}>58%</strong><span style={{fontSize:11,color:"#806b92",fontWeight:800}}>готово</span></div>
-        </div>
-      </section>
-    </div>
+const pages=[
+ {n:12,t:"Мои цели",s:"done"},{n:13,t:"Мои сильные стороны",s:"done"},{n:14,t:"Проект в работе",s:"active"},{n:15,t:"Мои ресурсы",s:"next"},{n:16,t:"План действий",s:"next"},{n:17,t:"Моё развитие",s:"next"}
+];
 
-    <div id="route" className="cabinetGrid cols2" style={{marginTop:18}}>
-      <section className="cabinetCard pad">
-        <p className="cabinetEyebrow">Сейчас</p>
-        <h3 style={{fontSize:22,marginBottom:8}}>Разворот 14</h3>
-        <p style={{marginTop:0}}>Проект в работе</p>
-        <div style={{height:10,borderRadius:99,background:"#eee8f2",overflow:"hidden",margin:"18px 0 12px"}}><div style={{width:"58%",height:"100%",borderRadius:99,background:"#5c2a9f"}}/></div>
-        <div style={{display:"flex",justifyContent:"space-between",fontSize:12,color:"#806b92",fontWeight:800}}><span>8 завершено</span><span>14 из 38</span></div>
-      </section>
-      <section id="feedback" className="cabinetCard pad">
-        <p className="cabinetEyebrow">Обратная связь</p>
-        <h3 style={{fontSize:22,marginBottom:8}}>Комментарий тьютора</h3>
-        <p style={{marginBottom:0}}>Посмотри на следующий шаг и попробуй самостоятельно сформулировать, что изменилось в проекте после последнего обсуждения.</p>
-      </section>
-    </div>
+export default function CabinetPreview(){return <CabinetShell roleLabel="Кабинет ученика" title="Мой маршрут" activeHref="/cabinet-preview" gradeLabel="8–11 класс" nav={[
+ {href:"/cabinet-preview",label:"Главная",icon:"⌂"},{href:"#planner",label:"Моя планёрка",icon:"▣"},{href:"#materials",label:"Мои материалы",icon:"⌕"},{href:"#feedback",label:"Комментарии",icon:"◌",badge:"2"},{href:"#submit",label:"Итоговая сдача",icon:"▤"}
+ ]}>
+ <div className="cabinetGrid" style={{gridTemplateColumns:"minmax(0,3fr) minmax(230px,.85fr)"}}>
+  <section className="heroBanner"><div className="heroCopy"><span className="heroNum">Сейчас ты на развороте</span><h2>14. Проект в работе</h2><p>Опиши свой проект, над которым работаешь, и планируй следующие шаги.</p><button className="cabinetPrimary">Продолжить заполнение →</button></div><div className="heroWords">ИДЕИ<br/>ЛЮДИ<br/>ПРОЕКТЫ<br/>БУДУЩЕЕ</div></section>
+  <section className="cabinetCard pad" style={{display:"grid",justifyItems:"center",alignContent:"center",gap:10}}><div style={{width:"100%"}}><h3 style={{fontSize:19,marginBottom:14}}>Твой прогресс</h3></div><div className="progressRing"><div><strong>58%</strong><small>заполнено</small></div></div><div style={{width:"100%",display:"grid",gap:7,marginTop:4}}><div className="legendRow"><i className="legendDot" style={{background:"#27ae70"}}/>Завершено <b style={{marginLeft:"auto"}}>18</b></div><div className="legendRow"><i className="legendDot" style={{background:"#7c62cf"}}/>В работе <b style={{marginLeft:"auto"}}>4</b></div><div className="legendRow"><i className="legendDot" style={{background:"#c8cedc"}}/>Впереди <b style={{marginLeft:"auto"}}>9</b></div></div><div style={{borderTop:"1px solid #ececf3",width:"100%",paddingTop:10,fontSize:10,color:"#737a98"}}>Всего разворотов <b style={{float:"right",color:"#303867"}}>31</b></div></section>
+ </div>
 
-    <section id="planner" className="cabinetCard pad" style={{marginTop:18}}>
-      <div style={{display:"flex",justifyContent:"space-between",gap:20,alignItems:"flex-start",flexWrap:"wrap"}}>
-        <div><p className="cabinetEyebrow">Моя планёрка</p><h3 style={{fontSize:22}}>Маршрут из 38 разворотов</h3></div>
-        <button className="cabinetPrimary">Открыть планёрку →</button>
-      </div>
-      <div style={{display:"grid",gridTemplateColumns:"repeat(10,1fr)",gap:8,marginTop:22}}>{Array.from({length:20},(_,i)=><div key={i} style={{height:34,borderRadius:9,display:"grid",placeItems:"center",fontSize:11,fontWeight:900,background:i<8?"#e7ddf2":i===13?"#5c2a9f":"#f4f0f6",color:i===13?"#fff":"#665676"}}>{i+1}</div>)}</div>
-    </section>
-  </CabinetShell>
-}
+ <section id="planner" className="cabinetCard pad" style={{marginTop:14}}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:10,marginBottom:12}}><h3 style={{fontSize:20}}>▣ &nbsp;Моя планёрка</h3><a href="#planner" style={{color:"#6641c0",fontWeight:800,fontSize:11,textDecoration:"none"}}>Открыть всю планёрку →</a></div><div className="plannerStrip">{pages.map(p=><div key={p.n} className={`plannerTile ${p.s}`}><b>{p.n}</b><strong>{p.t}</strong><div className={`status ${p.s}`}>{p.s==="done"?"● Завершено":p.s==="active"?"● Сейчас":"○ Впереди"}</div></div>)}</div></section>
+
+ <div className="cabinetGrid" style={{gridTemplateColumns:"1.4fr 1fr .75fr",marginTop:14}}>
+  <section id="feedback" className="cabinetCard pad commentCard"><div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}><h3 style={{fontSize:16}}>▣ &nbsp;Последний комментарий тьютора</h3><small style={{color:"#737a98"}}>12 ноября</small></div><div style={{display:"flex",gap:12,marginTop:16}}><div style={{width:45,height:45,borderRadius:"50%",background:"linear-gradient(135deg,#8b83aa,#4d567c)",display:"grid",placeItems:"center",color:"#fff",fontWeight:900}}>Е</div><div><b style={{fontSize:12,color:"#20275f"}}>Елена Сергеевна</b><p style={{fontSize:11,margin:"5px 0 7px"}}>Отличные идеи! Попробуй ещё подумать, какие ресурсы тебе понадобятся для реализации проекта. Ты на верном пути! 💪</p><a href="#feedback" style={{fontSize:11,color:"#6843c4",fontWeight:800,textDecoration:"none"}}>Ответить →</a></div></div></section>
+  <section id="materials" className="cabinetCard pad"><div style={{display:"flex",justifyContent:"space-between"}}><h3 style={{fontSize:16}}>⌕ &nbsp;Мои материалы</h3><a href="#materials" style={{fontSize:10,color:"#6843c4",fontWeight:800,textDecoration:"none"}}>Все материалы →</a></div><div style={{display:"flex",gap:9,marginTop:13}}><div><div className="materialThumb">✎</div><small style={{fontSize:9,color:"#777e9a"}}>Эскиз проекта</small></div><div><div className="materialThumb">⌁</div><small style={{fontSize:9,color:"#777e9a"}}>Вдохновение</small></div><button style={{width:62,height:62,border:"1px dashed #b9b5c9",borderRadius:9;background:"#fff",color:"#746b95",fontSize:18}}>＋</button></div></section>
+  <section className="cabinetCard pad quote"><p style={{margin:0,fontSize:14}}>«План — это не ограничение, а свобода быть собой в будущем.»</p><strong style={{marginTop:12}}>Команда МАРС ♡</strong></section>
+ </div>
+
+ <div className="cabinetGrid" style={{gridTemplateColumns:"1.2fr 1fr .75fr",marginTop:14}}>
+  <section className="cabinetCard pad"><div style={{display:"flex",justifyContent:"space-between"}}><h3 style={{fontSize:16}}>◎ &nbsp;Мои цели</h3><a href="#goals" style={{fontSize:10,color:"#6843c4",fontWeight:800,textDecoration:"none"}}>Редактировать →</a></div>{["Поступить в профильный класс","Развить навыки проектной работы","Найти команду единомышленников"].map((g,i)=><div className="goalRow" key={g}><span className="goalNum">{i+1}</span>{g}</div>)}<div className="goalRow" style={{color:"#8188a5"}}><span className="goalNum">＋</span>Добавить цель</div></section>
+  <section className="cabinetCard pad"><h3 style={{fontSize:16}}>▥ &nbsp;Моё настроение</h3><div className="mood" style={{marginTop:16}}><span>☹</span><span>•</span><span>☺</span><span className="selected">☺</span><span>ϟ</span></div><p style={{margin:"12px 0 0",fontSize:11,background:"#f3f4ff",padding:11,borderRadius:12}}>Сегодня продуктивный день! Чувствую, что двигаюсь вперёд.</p></section>
+  <section className="cabinetCard pad"><h3 style={{fontSize:16}}>☆ &nbsp;Мои достижения</h3>{["Заполнила 10 разворотов подряд","Загрузила первые материалы","Получила комментарий от тьютора"].map(x=><div className="checkRow" key={x}><span className="check">✓</span>{x}</div>)}<div className="checkRow"><span className="check" style={{background:"#d9dbea",color:"#68708d"}}>□</span>Сдала планёрку в PDF</div></section>
+ </div>
+ </CabinetShell>}
