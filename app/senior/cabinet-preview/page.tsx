@@ -16,7 +16,6 @@ export default function CabinetPreview(){
      <img src="/cabinet-hero-final.jpg" alt="" className="heroImage"/>
      <div className="heroOverlay"/>
      <div className="heroCopy"><span>Сейчас ты на развороте</span><h1>14. Проект в работе</h1><p>Опиши свой проект, над которым работаешь,<br/>и планируй следующие шаги.</p><button className="heroButton">Продолжить заполнение <b>→</b></button></div>
-     <div className="heroWords">ИДЕИ<br/>ЛЮДИ<br/>ПРОЕКТЫ<br/>БУДУЩЕЕ</div>
     </section>
     <section className="cabinetCard progressCard"><h2>Твой прогресс</h2><div className="progressRing"><div><strong>58%</strong><small>заполнено</small></div></div><div className="legend"><div><i className="green"/>Завершено <b>18</b></div><div><i className="purple"/>В работе <b>4</b></div><div><i className="gray"/>Впереди <b>9</b></div></div><div className="total">Всего разворотов <b>31</b></div></section>
    </div>
