@@ -3,103 +3,38 @@
 import Link from "next/link";
 import type {ReactNode} from "react";
 
-export type CabinetNavItem = {
-  href: string;
-  label: string;
-  icon?: string;
-};
+export type CabinetNavItem = { href:string; label:string; icon?:string; badge?:string };
 
-type CabinetShellProps = {
-  roleLabel: string;
-  title: string;
-  nav: CabinetNavItem[];
-  activeHref?: string;
-  children: ReactNode;
-  action?: ReactNode;
-};
+type Props={roleLabel:string;title:string;nav:CabinetNavItem[];activeHref?:string;children:ReactNode;action?:ReactNode;studentName?:string;gradeLabel?:string};
 
-export default function CabinetShell({
-  roleLabel,
-  title,
-  nav,
-  activeHref,
-  children,
-  action,
-}: CabinetShellProps) {
-  return (
-    <main className="cabinetShell">
-      <aside className="cabinetSidebar">
-        <Link href="/" className="cabinetLogo">
-          <img src="/mars-logo.svg" alt="МАРС" />
-          <span>ЖИВАЯ<br />ПЛАНЁРКА</span>
-        </Link>
-
-        <div className="cabinetRole">{roleLabel}</div>
-
-        <nav className="cabinetNav" aria-label="Навигация кабинета">
-          {nav.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={item.href === activeHref ? "active" : ""}
-            >
-              <span className="cabinetNavIcon">{item.icon || "•"}</span>
-              <span>{item.label}</span>
-            </Link>
-          ))}
-        </nav>
-
-        <div className="cabinetSidebarBottom">
-          <Link href="/" className="cabinetBack">← Выйти</Link>
-        </div>
-      </aside>
-
-      <section className="cabinetMain">
-        <header className="cabinetTopbar">
-          <div>
-            <div className="cabinetKicker">МАРС · {roleLabel}</div>
-            <h1>{title}</h1>
-          </div>
-          {action && <div className="cabinetTopbarAction">{action}</div>}
-        </header>
-        <div className="cabinetContent">{children}</div>
-      </section>
-
-      <style jsx global>{`
-        *{box-sizing:border-box}
-        body{margin:0;font-family:Inter,Arial,sans-serif;background:#f6f3f8;color:#30263a}
-        .cabinetShell{min-height:100vh;display:grid;grid-template-columns:238px minmax(0,1fr);background:#f6f3f8}
-        .cabinetSidebar{position:sticky;top:0;height:100vh;display:flex;flex-direction:column;padding:26px 16px 18px;background:#2f1558;color:#fff}
-        .cabinetLogo{display:flex;align-items:center;gap:12px;padding:0 10px;color:#fff;text-decoration:none}
-        .cabinetLogo img{width:68px;height:auto;filter:brightness(0) invert(1)}
-        .cabinetLogo span{font-size:10px;line-height:1.25;font-weight:900;letter-spacing:.12em}
-        .cabinetRole{margin:28px 10px 10px;color:#cdbbe4;font-size:10px;font-weight:900;letter-spacing:.13em;text-transform:uppercase}
-        .cabinetNav{display:grid;gap:4px}
-        .cabinetNav a{display:flex;align-items:center;gap:11px;padding:11px 12px;border-radius:12px;color:#e9def3;text-decoration:none;font-size:13px;font-weight:750;transition:.16s ease}
-        .cabinetNav a:hover{background:#ffffff12;color:#fff}
-        .cabinetNav a.active{background:#fff;color:#43206f;box-shadow:0 8px 22px #16062b33}
-        .cabinetNavIcon{width:22px;text-align:center;font-size:15px}
-        .cabinetSidebarBottom{margin-top:auto;padding:12px 10px 0;border-top:1px solid #ffffff18}
-        .cabinetBack{color:#cdbbe4;text-decoration:none;font-size:12px;font-weight:750}
-        .cabinetMain{min-width:0}
-        .cabinetTopbar{min-height:88px;padding:20px 34px;display:flex;align-items:center;justify-content:space-between;gap:20px;background:#fff;border-bottom:1px solid #e8e1ed}
-        .cabinetKicker{margin-bottom:5px;color:#806b92;font-size:10px;font-weight:900;letter-spacing:.12em;text-transform:uppercase}
-        .cabinetTopbar h1{margin:0;color:#32154f;font-size:25px;line-height:1.1;letter-spacing:-.025em}
-        .cabinetTopbarAction{display:flex;align-items:center;gap:8px}
-        .cabinetContent{max-width:1380px;margin:0 auto;padding:30px 34px 60px}
-        .cabinetGrid{display:grid;gap:18px}
-        .cabinetGrid.cols2{grid-template-columns:repeat(2,minmax(0,1fr))}
-        .cabinetGrid.cols3{grid-template-columns:repeat(3,minmax(0,1fr))}
-        .cabinetCard{background:#fff;border:1px solid #e8e1ed;border-radius:18px;box-shadow:0 8px 30px #3420440a}
-        .cabinetCard.pad{padding:22px}
-        .cabinetEyebrow{margin:0 0 7px;color:#806b92;font-size:10px;font-weight:900;letter-spacing:.13em;text-transform:uppercase}
-        .cabinetCard h2,.cabinetCard h3{margin:0;color:#3c1c59;letter-spacing:-.02em}
-        .cabinetCard p{color:#74697c;line-height:1.5}
-        .cabinetPrimary{display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:11px;padding:10px 14px;background:#5c2a9f;color:#fff;text-decoration:none;font:800 13px Inter,Arial,sans-serif;cursor:pointer}
-        .cabinetSecondary{display:inline-flex;align-items:center;justify-content:center;border:1px solid #dfd5e7;border-radius:11px;padding:10px 14px;background:#fff;color:#563080;text-decoration:none;font:800 13px Inter,Arial,sans-serif;cursor:pointer}
-        @media(max-width:900px){.cabinetShell{grid-template-columns:1fr}.cabinetSidebar{position:relative;height:auto;padding:14px 16px;display:block}.cabinetLogo{display:inline-flex}.cabinetRole{display:none}.cabinetNav{display:flex;overflow:auto;margin-top:14px}.cabinetNav a{white-space:nowrap}.cabinetSidebarBottom{display:none}.cabinetTopbar{padding:18px 22px}.cabinetContent{padding:22px}.cabinetGrid.cols2,.cabinetGrid.cols3{grid-template-columns:1fr}}
-        @media(max-width:560px){.cabinetLogo img{width:58px}.cabinetTopbar{min-height:74px;padding:15px 16px}.cabinetTopbar h1{font-size:21px}.cabinetContent{padding:16px}.cabinetTopbarAction{display:none}}
-      `}</style>
-    </main>
-  );
+export default function CabinetShell({roleLabel,title,nav,activeHref,children,action,studentName="Аня Иванова",gradeLabel="8–11 класс"}:Props){
+ return <main className="cabinetShell">
+  <aside className="cabinetSidebar">
+   <Link href="/" className="cabinetLogo"><img src="/mars-logo.svg" alt="МАРС"/><span>ПРОЕКТИРУЕМ<br/>БУДУЩЕЕ</span></Link>
+   <nav className="cabinetNav">{nav.map(item=><Link key={item.href} href={item.href} className={item.href===activeHref?"active":""}><span className="cabinetNavIcon">{item.icon||"•"}</span><span>{item.label}</span>{item.badge&&<b className="cabinetBadge">{item.badge}</b>}</Link>)}</nav>
+   <div className="cabinetDivider"/>
+   <div className="cabinetNav secondary"><Link href="#profile"><span className="cabinetNavIcon">♙</span>Профиль</Link><Link href="#settings"><span className="cabinetNavIcon">⚙</span>Настройки</Link></div>
+   <div className="cabinetMotivation">БОЛЬШИЕ<br/>ЦЕЛИ<br/>НАЧИНАЮТСЯ<br/>С ПЛАНА <span>↗</span></div>
+   <div className="cabinetPlanet"><span>●</span><small>МАРС<br/>— ЭТО ЛЮДИ ♡</small></div>
+  </aside>
+  <section className="cabinetMain">
+   <header className="cabinetTopbar">
+    <div className="cabinetGreeting"><strong>Привет, {studentName.split(" ")[0]}! 👋</strong><span>Хороший день, чтобы сделать ещё один шаг к своим целям.</span></div>
+    <div className="cabinetUser"><button className="cabinetGrade">⌂&nbsp; {gradeLabel}</button><span className="cabinetSearch">⌕</span><span className="cabinetAvatar">{studentName.slice(0,1)}</span><b>{studentName}</b><span>⌄</span></div>
+   </header>
+   <div className="cabinetContent">{children}</div>
+  </section>
+  <style jsx global>{`
+   *{box-sizing:border-box}html,body{margin:0}body{font-family:Inter,Arial,sans-serif;background:#f7f8fc;color:#17225b}
+   .cabinetShell{min-height:100vh;display:grid;grid-template-columns:210px minmax(0,1fr);background:#f7f8fc}
+   .cabinetSidebar{position:sticky;top:0;height:100vh;overflow:hidden;display:flex;flex-direction:column;padding:24px 14px 18px;background:linear-gradient(180deg,#25244f 0%,#211d49 72%,#171b43 100%);color:#fff}
+   .cabinetLogo{display:flex;align-items:flex-start;gap:8px;padding:0 10px;color:#fff;text-decoration:none}.cabinetLogo img{width:138px;height:auto;filter:brightness(0) invert(1)}.cabinetLogo span{display:none}
+   .cabinetNav{display:grid;gap:5px;margin-top:38px}.cabinetNav.secondary{margin-top:0}.cabinetNav a{position:relative;display:flex;align-items:center;gap:13px;padding:11px 13px;border-radius:10px;color:#f1effa;text-decoration:none;font-size:13px;font-weight:700}.cabinetNav a:hover{background:#ffffff10}.cabinetNav a.active{background:#684bd0;color:#fff;box-shadow:0 7px 18px #0f0b2c33}.cabinetNavIcon{width:22px;text-align:center;font-size:21px;line-height:1}.cabinetBadge{margin-left:auto;min-width:20px;height:20px;padding:0 6px;display:grid;place-items:center;border-radius:99px;background:#ff6739;color:#fff;font-size:10px}.cabinetDivider{height:1px;background:#ffffff22;margin:24px 12px 8px}.cabinetMotivation{margin-top:auto;padding:0 12px 6px;color:#eeeaf9;font-family:Georgia,serif;font-size:15px;line-height:1.35;font-style:italic;letter-spacing:.02em}.cabinetMotivation span{float:right;font-size:23px}.cabinetPlanet{height:150px;margin:-2px -14px -18px;position:relative;overflow:hidden;background:radial-gradient(circle at 48% 100%,#e36f3d 0 22%,#7d4264 38%,transparent 58%),linear-gradient(180deg,transparent,#1a1a43)}.cabinetPlanet:before{content:"";position:absolute;width:190px;height:105px;left:-20px;bottom:-58px;border-radius:50%;background:radial-gradient(circle at 35% 25%,#f4a16d,#9b4b5b 52%,#3d315d 78%);box-shadow:0 -12px 40px #e7784b66}.cabinetPlanet:after{content:"";position:absolute;left:82px;bottom:27px;width:9px;height:35px;background:#12152f;border-radius:6px;box-shadow:7px -10px 0 -2px #12152f}.cabinetPlanet span{display:none}.cabinetPlanet small{position:absolute;left:16px;bottom:10px;color:#fff;font-family:Georgia,serif;font-size:12px;line-height:1.2;font-style:italic;z-index:2}
+   .cabinetMain{min-width:0}.cabinetTopbar{min-height:82px;padding:18px 30px;display:flex;align-items:center;justify-content:space-between;gap:18px;background:#fff}.cabinetGreeting{display:grid;gap:4px}.cabinetGreeting strong{font-size:25px;letter-spacing:-.035em;color:#171f5e}.cabinetGreeting span{font-size:12px;color:#62698e}.cabinetUser{display:flex;align-items:center;gap:10px;color:#17205b;font-size:12px;white-space:nowrap}.cabinetGrade{border:0;border-radius:22px;padding:9px 15px;background:#efebff;color:#33206f;font-weight:900}.cabinetSearch{font-size:25px;margin:0 3px}.cabinetAvatar{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:#7048c8;color:#fff;font-size:17px;font-weight:900}.cabinetContent{max-width:1260px;margin:0 auto;padding:28px 26px 48px}.cabinetGrid{display:grid;gap:14px}.cabinetGrid.cols2{grid-template-columns:repeat(2,minmax(0,1fr))}.cabinetGrid.cols3{grid-template-columns:repeat(3,minmax(0,1fr))}.cabinetCard{background:#fff;border:1px solid #e8e9f3;border-radius:15px;box-shadow:0 7px 24px #25306708}.cabinetCard.pad{padding:18px}.cabinetEyebrow{margin:0 0 6px;color:#636b94;font-size:10px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}.cabinetCard h2,.cabinetCard h3{margin:0;color:#171f5e;letter-spacing:-.025em}.cabinetCard p{color:#5d6488;line-height:1.45}.cabinetPrimary{display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:9px;padding:11px 16px;background:#ff6839;color:#fff;text-decoration:none;font:800 13px Inter,Arial,sans-serif;cursor:pointer}.cabinetSecondary{display:inline-flex;align-items:center;justify-content:center;border:1px solid #dedbea;border-radius:9px;padding:9px 13px;background:#fff;color:#56348f;font:800 12px Inter,Arial,sans-serif;cursor:pointer}
+   .heroBanner{position:relative;overflow:hidden;min-height:312px;padding:28px 34px;border-radius:16px;background:linear-gradient(120deg,#f2d3ca 0%,#d7b8d0 46%,#a8a6d7 100%);border:1px solid #e2d8e9}.heroBanner:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 72% 27%,#fff5d9aa 0 8%,transparent 9%),linear-gradient(165deg,transparent 0 54%,#49375f55 55% 61%,transparent 62%),linear-gradient(178deg,transparent 0 63%,#352c4c88 64% 100%)}.heroBanner:after{content:"";position:absolute;width:220px;height:150px;right:8%;bottom:-30px;border-radius:50% 50% 0 0;background:linear-gradient(160deg,#242746,#151936);box-shadow:-35px 12px 0 -12px #30345b}.heroCopy{position:relative;z-index:2;max-width:570px}.heroCopy .heroNum{font-size:11px;font-weight:900;color:#18205c}.heroCopy h2{font-size:30px;margin:7px 0 8px}.heroCopy p{max-width:490px;margin:0 0 22px;color:#283268;font-size:15px}.heroWords{position:absolute;right:30px;top:26px;z-index:3;font-family:Georgia,serif;font-style:italic;font-weight:700;font-size:16px;line-height:1.35;transform:rotate(-5deg);color:#20235e}.cabinetSideStack{display:grid;gap:14px}.progressRing{width:126px;height:126px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(#27ae70 0 58%,#e8edf4 58%);position:relative}.progressRing:after{content:"";position:absolute;inset:12px;border-radius:50%;background:#fff}.progressRing>div{position:relative;z-index:2;text-align:center}.progressRing strong{display:block;font-size:26px;color:#17205b}.progressRing small{font-size:9px;color:#6b7292}.legendRow{display:flex;align-items:center;gap:7px;font-size:11px;color:#62698b}.legendDot{width:9px;height:9px;border-radius:50%}.plannerStrip{display:grid;grid-template-columns:repeat(6,minmax(90px,1fr));gap:9px}.plannerTile{min-height:112px;padding:12px 10px;border-radius:11px;border:1px solid #e3e5ef;background:#fbfbfe}.plannerTile.done{background:#f1fbf5}.plannerTile.active{border:1.5px solid #ff6839;background:#fff9f6}.plannerTile b{display:block;font-size:16px;margin-bottom:7px}.plannerTile strong{display:block;font-size:12px;line-height:1.25;color:#202862}.status{margin-top:20px;font-size:10px;font-weight:800;color:#777e9b}.status.done{color:#20a968}.status.active{color:#ff6839}.commentCard{background:linear-gradient(120deg,#f5f3ff,#fff)}.materialThumb{width:62px;height:62px;border-radius:9px;background:linear-gradient(135deg,#c9b8a4,#eee0d4);border:1px solid #eee;display:grid;place-items:center;color:#6d6483;font-size:20px}.goalRow{display:flex;align-items:center;gap:10px;padding:8px 0;color:#555e85;font-size:12px}.goalNum{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:#eeeaff;color:#6543ba;font-weight:900}.checkRow{display:flex;gap:9px;align-items:flex-start;padding:7px 0;color:#5a6288;font-size:11px}.check{width:20px;height:20px;border-radius:50%;background:#29b276;color:#fff;display:grid;place-items:center;font-size:11px;flex:0 0 auto}.mood{display:flex;gap:18px;align-items:center;font-size:25px;color:#737b9a}.mood .selected{width:43px;height:43px;border-radius:50%;display:grid;place-items:center;background:#bfe8d1;color:#319765}.quote{background:#fff3ec;border-color:#f5ded2;font-family:Georgia,serif;font-style:italic;color:#4a426f}.quote strong{display:block;text-align:right;font-family:Inter,Arial,sans-serif;font-style:normal;font-size:11px;color:#4d4a73}
+   @media(max-width:1050px){.cabinetShell{grid-template-columns:190px 1fr}.cabinetContent{padding:22px 18px}.cabinetTopbar{padding:16px 20px}.plannerStrip{grid-template-columns:repeat(3,1fr)}.heroBanner{min-height:270px}}
+   @media(max-width:780px){.cabinetShell{grid-template-columns:1fr}.cabinetSidebar{position:relative;height:auto;padding:13px 14px}.cabinetLogo img{width:108px}.cabinetNav{display:flex;overflow:auto;margin-top:15px}.cabinetNav a{white-space:nowrap}.cabinetDivider,.cabinetMotivation,.cabinetPlanet,.cabinetNav.secondary{display:none}.cabinetTopbar{padding:14px 16px}.cabinetGreeting strong{font-size:20px}.cabinetGreeting span{display:none}.cabinetUser b,.cabinetSearch{display:none}.cabinetGrid.cols2,.cabinetGrid.cols3{grid-template-columns:1fr}.heroWords{display:none}}
+   @media(max-width:520px){.cabinetContent{padding:12px}.heroBanner{padding:22px 18px;min-height:250px}.heroCopy h2{font-size:25px}.plannerStrip{grid-template-columns:repeat(2,1fr)}.cabinetGrade{padding:8px 10px}.cabinetAvatar{width:36px;height:36px}}
+  `}</style>
+ </main>
 }
