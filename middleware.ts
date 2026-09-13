@@ -38,7 +38,7 @@ export async function middleware(request:NextRequest){
 
   if(path.startsWith("/admin")){
     try{
-      const url=new URL("/api/auth/admin-session",request.url);
+      const url=new URL("http://127.0.0.1:3000/api/auth/admin-session");
       const headers:Record<string,string>={};
       const cookie=request.headers.get("cookie");
       if(cookie)headers.cookie=cookie;
@@ -59,7 +59,7 @@ export async function middleware(request:NextRequest){
 
   if(path.startsWith("/teacher")||path.startsWith("/methodist")){
     try{
-      const url=new URL("/api/auth/staff-session",request.url);
+      const url=new URL("http://127.0.0.1:3000/api/auth/staff-session");
       const headers:Record<string,string>={};
       const cookie=request.headers.get("cookie");
       if(cookie)headers.cookie=cookie;
