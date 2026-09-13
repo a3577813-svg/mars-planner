@@ -93,7 +93,7 @@ export async function middleware(request:NextRequest){
   }
 
   try{
-    const url=new URL("/api/planner/access-check",request.url);
+    const url=new URL("http://127.0.0.1:3000/api/planner/access-check");
     url.searchParams.set("audience",access.audience);
     url.searchParams.set("page",String(access.page));
     url.searchParams.set("mode",access.mode);
