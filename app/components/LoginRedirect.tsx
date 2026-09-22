@@ -94,7 +94,7 @@ export default function LoginRedirect(){
         const role=data.plannerType==="senior"?"student8":"student7";
         localStorage.setItem("mars-active-account",role);
         localStorage.setItem("mars-student-id",data.studentId);
-        location.assign(data.plannerType==="senior"?"/senior":"/student");
+        location.assign(data.plannerType==="senior"?"/senior/cabinet-preview":"/student");
       }catch{
         alert("Не удалось связаться с сервером");
       }
