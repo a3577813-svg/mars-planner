@@ -3,6 +3,7 @@
 import {useEffect,useMemo,useState} from "react";
 import CabinetShell from "../../components/cabinet/CabinetShell";
 import {seniorItems,seniorHref} from "../../lib/senior-planner-map";
+import {getSeniorPageStatuses} from "../../lib/planner-progress";
 
 type PlannerEntry={
  field_key:string;
@@ -72,67 +73,7 @@ export default function CabinetPreview(){
 
   return()=>{active=false;};
  },[]);
- const pageStatuses=useMemo<Record<number,PageStatus>>(()=>{
-  const perPage=new Map<number,{count:number;substantial:number}>();
-
-  for(const entry of entries){
-   const value=(entry.value||"").trim();
-   if(!value)continue;
-
-   let page=0;
-
-   const seniorMatch=entry.field_key.match(
-    /^mars-senior-(?:shared-)?p([0-9]+)-/
-   );
-
-   const sharedMatch=entry.field_key.match(
-    /^mars-book-p([0-9]+)-/
-   );
-
-   if(seniorMatch){
-    page=Number(seniorMatch[1]);
-   }else if(sharedMatch){
-    const physicalPage=Number(sharedMatch[1]);
-
-    if(physicalPage===37){
-     page=44;
-    }else if(physicalPage===38){
-     page=45;
-    }else{
-     page=physicalPage;
-    }
-   }
-
-   if(!page||page>45)continue;
-
-   const item=perPage.get(page)||{
-    count:0,
-    substantial:0
-   };
-
-   item.count++;
-
-   if(value.length>=18){
-    item.substantial++;
-   }
-
-   perPage.set(page,item);
-  }
-
-  const result:Record<number,PageStatus>={};
-
-  for(let page=1;page<=45;page++){
-   const item=perPage.get(page);
-
-   result[page]=!item
-    ?"empty"
-    :item.count>=3||item.substantial>=2
-     ?"done"
-     :"progress";
-  }
-
-  return result;
- },[entries]);
+ const pageStatuses=useMemo(()=>getSeniorPageStatuses(entries),[entries]);
  const visibleItems=useMemo(()=>{
   return seniorItems.filter(item=>{
    if(!allowedPages.includes(item.n))return false;
@@ -185,8 +126,8 @@ export default function CabinetPreview(){
   }catch(error:any){setSubmitError(error?.message||"Ошибка завершения планёрки");
   }finally{setSubmitLoading(false);}
  };
- return <CabinetShell roleLabel="Кабинет ученика" title="Мой маршрут" activeHref="/senior/cabinet-preview" gradeLabel="8–11 класс" nav={[
-  {href:"/senior/cabinet-preview",label:"Главная",icon:"⌂"},{href:"#planner",label:"Моя планёрка",icon:"▣"},{href:"#projects",label:"Мои проекты",icon:"◇"},{href:"#materials",label:"Мои материалы",icon:"▱"},{href:"#comments",label:"Комментарии",icon:"▢"},{href:"#submit",label:"Итоговая сдача",icon:"▤"}
+ return <CabinetShell roleLabel="Кабинет ученика" title="Мой маршрут" activeHref="/senior/cabinet-preview" gradeLabel="8–11 класс" brandHref="/senior/cabinet-preview" nav={[
+  {href:"/senior/cabinet-preview",label:"Главная",icon:"⌂"},{href:"/senior",label:"Моя планёрка",icon:"▣"},{href:"#projects",label:"Мои проекты",icon:"◇"},{href:"#materials",label:"Мои материалы",icon:"▱"},{href:"#comments",label:"Комментарии",icon:"▢"},{href:"#submit",label:"Итоговая сдача",icon:"▤"}
  ]}>
   <div className="dashboard">
    <div className="topGrid">

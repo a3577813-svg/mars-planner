@@ -4,24 +4,18 @@ import Link from "next/link";
 import type {ReactNode} from "react";
 
 export type CabinetNavItem={href:string;label:string;icon?:string;badge?:string};
-type Props={roleLabel:string;title:string;nav:CabinetNavItem[];activeHref?:string;children:ReactNode;action?:ReactNode;studentName?:string;gradeLabel?:string};
+type Props={roleLabel:string;title:string;nav:CabinetNavItem[];activeHref?:string;children:ReactNode;action?:ReactNode;studentName?:string;gradeLabel?:string;brandHref?:string};
 
-const icons:Record<string,string>={home:"⌂",book:"▣",projects:"◇",materials:"▱",comments:"▢",submit:"▤",profile:"♙",settings:"⚙"};
-
-export default function CabinetShell({nav,activeHref,children,studentName="Аня Иванова",gradeLabel="8–11 класс"}:Props){
+export default function CabinetShell({nav,activeHref,children,studentName="Аня Иванова",gradeLabel="8–11 класс",brandHref="/"}:Props){
  const firstName=studentName.split(" ")[0];
  return <main className="cabinetShell">
   <aside className="cabinetSidebar">
-   <Link href="/" className="cabinetBrand">
+   <Link href={brandHref} className="cabinetBrand">
     <span className="cabinetLogo"><img src="/mars-logo.svg" alt="МАРС"/></span>
     <span className="cabinetBrandText"><b>МАРС</b><small>ПРОЕКТИРУЕМ<br/>БУДУЩЕЕ</small></span>
    </Link>
    <nav className="cabinetNav">{nav.map(item=><Link key={item.href} href={item.href} className={item.href===activeHref?"active":""}><span className="cabinetNavIcon">{item.icon||"•"}</span><span>{item.label}</span>{item.badge&&<b className="cabinetBadge">{item.badge}</b>}</Link>)}</nav>
    <div className="cabinetDivider"/>
-   <nav className="cabinetNav cabinetSecondaryNav">
-    <a href="#profile"><span className="cabinetNavIcon">{icons.profile}</span><span>Профиль</span></a>
-    <a href="#settings"><span className="cabinetNavIcon">{icons.settings}</span><span>Настройки</span></a>
-   </nav>
    <div className="cabinetCosmos">
     <i className="orbit o1"/><i className="orbit o2"/><i className="orbit o3"/>
     <i className="planet p1"/><i className="planet p2"/><i className="planet p3"/>
