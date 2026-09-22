@@ -4,6 +4,7 @@ import {useEffect,useMemo,useState} from "react";
 import CabinetShell from "../components/cabinet/CabinetShell";
 import {seniorItems,seniorHref} from "../lib/senior-planner-map";
 import {getSeniorPageStatuses,type PlannerEntry} from "../lib/planner-progress";
+import {seniorCabinetNav} from "../lib/senior-cabinet-nav";
 
 type SpreadAssignment={page:number;week:string;start:string;end:string;visible:boolean};
 const isFutureAssignment=(assignment?:SpreadAssignment)=>Boolean(assignment?.start&&new Date(assignment.start+"T00:00:00").getTime()>Date.now());
@@ -37,9 +38,7 @@ export default function SeniorPlanner(){
  const openItems=visibleItems.filter(item=>!isFutureAssignment(assignments.find(value=>value.page===item.n)));
  const currentItem=openItems.find(item=>pageStatuses[item.n]==="progress")||openItems.find(item=>pageStatuses[item.n]==="empty")||openItems[openItems.length-1]||null;
 
- return <CabinetShell roleLabel="Кабинет ученика" title="Моя планёрка" activeHref="/senior" gradeLabel="8–11 класс" brandHref="/senior/cabinet-preview" nav={[
-  {href:"/senior/cabinet-preview",label:"Главная",icon:"⌂"},{href:"/senior",label:"Моя планёрка",icon:"▣"},{href:"/senior/cabinet-preview#projects",label:"Мои проекты",icon:"◇"},{href:"/senior/cabinet-preview#materials",label:"Мои материалы",icon:"▱"},{href:"/senior/cabinet-preview#comments",label:"Комментарии",icon:"▢"},{href:"/senior/cabinet-preview#submit",label:"Итоговая сдача",icon:"▤"}
- ]}>
+ return <CabinetShell roleLabel="Кабинет ученика" title="Моя планёрка" activeHref="/senior" gradeLabel="8–11 класс" brandHref="/senior/cabinet-preview" nav={seniorCabinetNav}>
   <div className="plannerPage">
    <section className="plannerIntro">
     <div><span className="eyebrow">МОЙ МАРШРУТ</span><h1>Моя планёрка</h1><p>Все развороты твоего маршрута — от первых идей до итоговой рефлексии.</p></div>

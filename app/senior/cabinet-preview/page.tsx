@@ -4,6 +4,7 @@ import {useEffect,useMemo,useState} from "react";
 import CabinetShell from "../../components/cabinet/CabinetShell";
 import {seniorItems,seniorHref} from "../../lib/senior-planner-map";
 import {getSeniorPageStatuses} from "../../lib/planner-progress";
+import {seniorCabinetNav} from "../../lib/senior-cabinet-nav";
 
 type PlannerEntry={
  field_key:string;
@@ -126,9 +127,7 @@ export default function CabinetPreview(){
   }catch(error:any){setSubmitError(error?.message||"Ошибка завершения планёрки");
   }finally{setSubmitLoading(false);}
  };
- return <CabinetShell roleLabel="Кабинет ученика" title="Мой маршрут" activeHref="/senior/cabinet-preview" gradeLabel="8–11 класс" brandHref="/senior/cabinet-preview" nav={[
-  {href:"/senior/cabinet-preview",label:"Главная",icon:"⌂"},{href:"/senior",label:"Моя планёрка",icon:"▣"},{href:"#projects",label:"Мои проекты",icon:"◇"},{href:"#materials",label:"Мои материалы",icon:"▱"},{href:"#comments",label:"Комментарии",icon:"▢"},{href:"#submit",label:"Итоговая сдача",icon:"▤"}
- ]}>
+ return <CabinetShell roleLabel="Кабинет ученика" title="Мой маршрут" activeHref="/senior/cabinet-preview" gradeLabel="8–11 класс" brandHref="/senior/cabinet-preview" nav={seniorCabinetNav}>
   <div className="dashboard">
    <div className="topGrid">
     <section className="hero">
