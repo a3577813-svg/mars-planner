@@ -20,7 +20,7 @@ const spreads=[Spread34,Spread35,Spread36];
 export default function BookNext8(){const[page,setPage]=useState(34);useEffect(()=>{const raw=Number(new URLSearchParams(location.search).get("page")||34);setPage(Math.min(36,Math.max(34,raw)))},[]);useEffect(()=>{const p=new URLSearchParams(location.search);p.set("page",String(page));history.replaceState(null,"",`${location.pathname}?${p.toString()}`);localStorage.setItem("mars-book-current-page",String(page));window.scrollTo({top:0,behavior:"smooth"})},[page]);const {accessChecked,hasPageAccess}=usePlannerPageAccess(
   page,
   typeof window!=="undefined"&&new URLSearchParams(window.location.search).get("senior")==="1"?"senior":"middle",
-  typeof window==="undefined"||new URLSearchParams(window.location.search).get("mode")!=="admin-edit"
+  typeof window==="undefined"||!["admin-edit","teacher","methodist"].includes(new URLSearchParams(window.location.search).get("mode")||"")
 );
 
 if(!accessChecked||!hasPageAccess){
