@@ -1,6 +1,7 @@
 "use client";
 
 import {useEffect} from "react";
+import {seniorPageHrefWithParams,seniorReturnHref} from "../lib/senior-planner-map";
 
 const CUSTOM_OPTION_RE = /(?:^|\s)(?:(?:свой|своя|своё|свое|свои|другой|другая|другое|другие|иной|иная|иное|иные)(?:\s+(?:вариант|способ|цель|роль|образ|идея|ответ|формат|пункт|варианты))?|other(?:\s+(?:option|way|goal|role|image|idea|answer|format|item|evidence))?)(?:\s|$|:)/i;
 
@@ -23,17 +24,7 @@ function juniorHref(page:number){
 }
 
 function seniorHref(page:number){
-  if(page<=28){
-    const path=page<=12?"/book":page<=15?"/book-next":page<=18?"/book-next2":page<=21?"/book-next3":page<=24?"/book-next4":page<=27?"/book-next5":"/book-next6";
-    return plannerHref(path,page,true);
-  }
-  if(page<=31)return plannerHref("/senior/unique",page,true);
-  if(page<=34)return plannerHref("/senior/unique2",page,true);
-  if(page<=37)return plannerHref("/senior/unique3",page,true);
-  if(page<=40)return plannerHref("/senior/unique4",page,true);
-  if(page<=43)return plannerHref("/senior/unique5",page,true);
-  if(page===44)return plannerHref("/book-next9",37,true);
-  return plannerHref("/book-next9",38,true);
+  return seniorPageHrefWithParams(page,location.search)||"/senior";
 }
 
 function plannerContext(){
@@ -150,7 +141,7 @@ export default function CustomCheckboxFields(){
         }
 
         if(isRouteLink&&context.isSenior&&control instanceof HTMLAnchorElement){
-          control.href="/senior";
+          control.href=seniorReturnHref(location.search);
           control.dataset.seniorRoute="1";
         }
       });

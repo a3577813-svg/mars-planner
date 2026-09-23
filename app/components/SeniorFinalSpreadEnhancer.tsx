@@ -1,6 +1,7 @@
 "use client";
 
 import {useEffect} from "react";
+import {seniorReturnHref} from "../lib/senior-planner-map";
 
 export default function SeniorFinalSpreadEnhancer(){
   useEffect(()=>{
@@ -23,7 +24,7 @@ export default function SeniorFinalSpreadEnhancer(){
       if(spreadNumber)spreadNumber.textContent=String(seniorPage).padStart(2,"0");
 
       const routeLink=document.querySelector<HTMLAnchorElement>("header>a");
-      if(routeLink){routeLink.href="/senior";routeLink.textContent="← К моему маршруту";}
+      if(routeLink){routeLink.href=seniorReturnHref(location.search);routeLink.textContent="← К моему маршруту";}
 
       const footer=document.querySelector("footer");
       if(!footer)return;

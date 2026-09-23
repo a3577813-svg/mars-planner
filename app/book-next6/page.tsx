@@ -2,6 +2,7 @@
 
 import {useEffect,useState} from "react";
 import {usePlannerPageAccess} from "../lib/use-planner-page-access";
+import {seniorPageHrefWithParams} from "../lib/senior-planner-map";
 
 type FieldProps={id:string;label:string;rows?:number};
 function useStored(id:string){const[v,setV]=useState("");useEffect(()=>{const load=()=>setV(localStorage.getItem(`mars-book-${id}`)||"");load();window.addEventListener("mars-server-data-loaded",load);const t=setTimeout(load,500);return()=>{clearTimeout(t);window.removeEventListener("mars-server-data-loaded",load)}},[id]);useEffect(()=>{const t=setTimeout(()=>localStorage.getItem(`mars-book-${id}`)!==v&&localStorage.setItem(`mars-book-${id}`,v),180);return()=>clearTimeout(t)},[id,v]);return[v,setV] as const}
@@ -21,7 +22,7 @@ export default function BookNext6(){const[page,setPage]=useState(28);useEffect((
 const {accessChecked,hasPageAccess}=usePlannerPageAccess(
   page,
   params?.get("senior")==="1"?"senior":"middle",
-  typeof window==="undefined"||!["admin-edit","teacher"].includes(params?.get("mode")||"")
+  typeof window==="undefined"||!["admin-edit","teacher","methodist"].includes(params?.get("mode")||"")
 );
 
 if(!accessChecked||!hasPageAccess){
@@ -37,7 +38,7 @@ if(!accessChecked||!hasPageAccess){
   </main>;
 }
 
-const Spread=spreads[page-28];return <main><header><div className="brand"><img src="/mars-logo.svg" alt="МАРС"/><div><b>Живая планёрка</b><span>Личный кабинет</span></div></div><div className="meta"><span>Разворот {page} из 38</span><span>Сохранено ✓</span></div><a href="/student">← К моему маршруту</a></header><section className="frame"><div className="spread"><Spread/></div></section><footer><a className="button" href={page===28?"/book-next5?page=27&mode=student":`/book-next6?page=${page-1}&mode=student`}>← Предыдущий</a><span>{page} / 38</span><button disabled={page===30} onClick={()=>{
+const Spread=spreads[page-28];return <main><header><div className="brand"><img src="/mars-logo.svg" alt="МАРС"/><div><b>Живая планёрка</b><span>Личный кабинет</span></div></div><div className="meta"><span>Разворот {page} из {params?.get("senior")==="1"?45:38}</span><span>Сохранено ✓</span></div><a href={params?.get("senior")==="1"?"/senior":"/student"}>← К моему маршруту</a></header><section className="frame"><div className="spread"><Spread/></div></section><footer><a className="button" href={params?.get("senior")==="1"&&page===28?(seniorPageHrefWithParams(27,window.location.search)||"/senior"):page===28?"/book-next5?page=27&mode=student":`/book-next6?page=${page-1}&mode=student`}>← Предыдущий</a><span>{page} / {params?.get("senior")==="1"?45:38}</span><button disabled={page===30} onClick={()=>{
   const params=new URLSearchParams(location.search);
   const isSenior=params.get("senior")==="1";
   if(page===28&&isSenior){

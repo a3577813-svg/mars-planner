@@ -103,3 +103,31 @@ export function seniorHref(item:SeniorPlannerItem){
 export function seniorStoragePage(item:SeniorPlannerItem){
   return item.source??item.n;
 }
+
+export function seniorItemByPage(page:number){
+  return seniorItems.find(item=>item.n===page)??null;
+}
+
+export function seniorPageHref(page:number){
+  const item=seniorItemByPage(page);
+  return item?seniorHref(item):null;
+}
+
+export function seniorPageHrefWithParams(page:number,currentSearch:string){
+  const href=seniorPageHref(page);
+  if(!href)return null;
+  const [path,query=""]=href.split("?");
+  const target=new URLSearchParams(query);
+  const current=new URLSearchParams(currentSearch);
+  for(const key of ["mode","student"]){const value=current.get(key);if(value)target.set(key,value);}
+  return `${path}?${target.toString()}`;
+}
+
+export function seniorReturnHref(currentSearch:string){
+  const params=new URLSearchParams(currentSearch);
+  const mode=params.get("mode");
+  const student=params.get("student")||"";
+  if(mode==="teacher"&&student)return `/teacher/student?student=${encodeURIComponent(student)}`;
+  if(mode==="methodist")return "/methodist";
+  return "/senior";
+}

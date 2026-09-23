@@ -2,6 +2,7 @@
 
 import {useEffect,useState} from "react";
 import {usePlannerPageAccess} from "../../lib/use-planner-page-access";
+import {seniorReturnHref} from "../../lib/senior-planner-map";
 
 type FieldProps={id:string;label:string;rows?:number};
 function useStored(id:string){const[v,setV]=useState("");const readOnly=typeof window!=="undefined"&&["teacher","methodist"].includes(new URLSearchParams(window.location.search).get("mode")||"");useEffect(()=>{const load=()=>setV(localStorage.getItem(`mars-senior-${id}`)||"");load();window.addEventListener("mars-server-data-loaded",load);const t=setTimeout(load,500);return()=>{clearTimeout(t);window.removeEventListener("mars-server-data-loaded",load)}},[id]);useEffect(()=>{if(readOnly)return;const t=setTimeout(()=>localStorage.getItem(`mars-senior-${id}`)!==v&&localStorage.setItem(`mars-senior-${id}`,v),180);return()=>clearTimeout(t)},[id,v,readOnly]);return[v,setV,readOnly] as const}
@@ -32,7 +33,7 @@ const params=typeof window!=="undefined"?new URLSearchParams(window.location.sea
 const {accessChecked,hasPageAccess}=usePlannerPageAccess(
   page,
   "senior",
-  typeof window==="undefined"||!["admin-edit","teacher"].includes(params?.get("mode")||"")
+  typeof window==="undefined"||!["admin-edit","teacher","methodist"].includes(params?.get("mode")||"")
 );
 
 if(!accessChecked||!hasPageAccess){
@@ -48,7 +49,7 @@ if(!accessChecked||!hasPageAccess){
   </main>;
 }
 
-const Spread=spreads[page-38];return <main><header><div className="brand"><img src="/mars-logo.svg" alt="МАРС"/><div><b>Живая планёрка</b><span>8–11 уровни</span></div></div><div className="meta">Разворот {page} из 45</div><a href="/senior">← К маршруту</a></header><section className="frame"><div className="spread"><Spread/></div></section><footer><a className="button" href={page===38?"/senior/unique3?page=37":"#"} onClick={e=>{if(page>38){e.preventDefault();setPage(p=>p-1)}}}>← Предыдущий</a><span>{page} / 45</span><button onClick={()=>{
+const Spread=spreads[page-38];return <main><header><div className="brand"><img src="/mars-logo.svg" alt="МАРС"/><div><b>Живая планёрка</b><span>8–11 уровни</span></div></div><div className="meta">Разворот {page} из 45</div><a href={seniorReturnHref(window.location.search)}>← К маршруту</a></header><section className="frame"><div className="spread"><Spread/></div></section><footer><a className="button" href={page===38?"/senior/unique3?page=37":"#"} onClick={e=>{if(page>38){e.preventDefault();setPage(p=>p-1)}}}>← Предыдущий</a><span>{page} / 45</span><button onClick={()=>{
   if(page===40){
     const params=new URLSearchParams(window.location.search);
     params.set("page","41");

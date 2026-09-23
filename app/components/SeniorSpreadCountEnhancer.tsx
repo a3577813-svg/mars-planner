@@ -1,6 +1,7 @@
 "use client";
 
 import {useEffect} from "react";
+import {seniorReturnHref} from "../lib/senior-planner-map";
 
 const SHARED_PATHS=new Set([
   "/book","/book-next","/book-next2","/book-next3","/book-next4",
@@ -24,7 +25,7 @@ export default function SeniorSpreadCountEnhancer(){
 
       const routeLink=document.querySelector<HTMLAnchorElement>("header>a");
       if(routeLink){
-        routeLink.href="/senior";
+        routeLink.href=seniorReturnHref(location.search);
         routeLink.textContent="← К моему маршруту";
       }
 
