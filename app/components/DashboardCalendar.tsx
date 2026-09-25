@@ -38,22 +38,23 @@ export default function DashboardCalendar(){
   let cancelled=false;
   let attempts=0;
   const apply=()=>{
-   if(cancelled||location.pathname!=="/student"&&location.pathname!=="/senior")return;
-   const root=document.querySelector<HTMLElement>(location.pathname==="/senior"?"main.senior":"main.studentCabinet");
-   const aside=root?.querySelector("aside");
-   if(!root||!aside){if(attempts++<20)setTimeout(apply,100);return}
+   const isSeniorCabinet=location.pathname==="/senior/cabinet-preview";
+   if(cancelled||location.pathname!=="/student"&&!isSeniorCabinet)return;
+   const root=document.querySelector<HTMLElement>(isSeniorCabinet?"main.cabinetShell":"main.studentCabinet");
+   const host=isSeniorCabinet?root?.querySelector<HTMLElement>(".eventsCard"):root?.querySelector<HTMLElement>("aside");
+   if(!root||!host){if(attempts++<20)setTimeout(apply,100);return}
 
-   let panel=aside.querySelector<HTMLElement>(".marsCalendarPanel");
-   if(!panel){
+   let panel=host.querySelector<HTMLElement>(".marsCalendarPanel");
+   if(isSeniorCabinet){panel=host;panel.classList.add("marsCalendarPanel");}
+   if(!panel){panel=document.createElement("section");panel.className="panel marsCalendarPanel";}
+   {
     const now=new Date(),today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
     const {active,next}=summary(today);
     const current=active[0];
     const untilNext=next?dayDiff(today,parse(next.start)):0;
-    panel=document.createElement("section");
-    panel.className="panel marsCalendarPanel";
-    panel.innerHTML=`<p>КАЛЕНДАРЬ МАРС</p><h3>Что происходит сейчас</h3><div class="marsCalendarSummary">${current?`<article class="isCurrent"><span class="marsEventBadge">Сейчас</span><div class="marsEventRow"><i>${current.icon}</i><div><b>${current.title}</b><small>${fmt(current)}</small></div></div></article>`:`<article class="isQuiet"><span class="marsEventBadge">Сейчас</span><p>Между событиями — можно спокойно продолжить работу в планёрке.</p></article>`}${next?`<article class="isNext"><span class="marsEventBadge">Следующее</span><div class="marsEventRow"><i>${next.icon}</i><div><b>${next.title}</b><small>${fmt(next)} · через ${untilNext} ${plural(untilNext)}</small></div></div></article>`:""}</div><button type="button" class="marsOpenCalendar">Открыть календарь года</button>`;
+    panel.innerHTML=`<p>КАЛЕНДАРЬ СОБЫТИЙ</p><h3>Что происходит сейчас</h3><div class="marsCalendarSummary">${current?`<article class="isCurrent"><span class="marsEventBadge">Сейчас</span><div class="marsEventRow"><i>${current.icon}</i><div><b>${current.title}</b><small>${fmt(current)}</small></div></div></article>`:`<article class="isQuiet"><span class="marsEventBadge">Сейчас</span><p>Между событиями — можно спокойно продолжить работу в планёрке.</p></article>`}${next?`<article class="isNext"><span class="marsEventBadge">Следующее</span><div class="marsEventRow"><i>${next.icon}</i><div><b>${next.title}</b><small>${fmt(next)} · через ${untilNext} ${plural(untilNext)}</small></div></div></article>`:""}</div><button type="button" class="marsOpenCalendar">Открыть календарь года</button>`;
    }
-   if(aside.firstElementChild!==panel)aside.prepend(panel);
+   if(!isSeniorCabinet&&host.firstElementChild!==panel)host.prepend(panel);
    root.querySelectorAll<HTMLElement>(".marsOpenCalendar,.marsLiveStrip button").forEach(button=>{button.onclick=()=>setOpen(true)});
   };
 
