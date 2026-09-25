@@ -38,12 +38,16 @@ if(!accessChecked||!hasPageAccess){
   </main>;
 }
 
-const Spread=spreads[page-28];return <main><header><div className="brand"><img src="/mars-logo.svg" alt="МАРС"/><div><b>Живая планёрка</b><span>Личный кабинет</span></div></div><div className="meta"><span>Разворот {page} из {params?.get("senior")==="1"?45:38}</span><span>Сохранено ✓</span></div><a href={params?.get("senior")==="1"?"/senior":"/student"}>← К моему маршруту</a></header><section className="frame"><div className="spread"><Spread/></div></section><footer><a className="button" href={params?.get("senior")==="1"&&page===28?(seniorPageHrefWithParams(27,window.location.search)||"/senior"):page===28?"/book-next5?page=27&mode=student":`/book-next6?page=${page-1}&mode=student`}>← Предыдущий</a><span>{page} / {params?.get("senior")==="1"?45:38}</span><button disabled={page===30} onClick={()=>{
+const Spread=spreads[page-28];return <main><header><div className="brand"><img src="/mars-logo.svg" alt="МАРС"/><div><b>Живая планёрка</b><span>Личный кабинет</span></div></div><div className="meta"><span>Разворот {page} из {params?.get("senior")==="1"?45:38}</span><span>Сохранено ✓</span></div><a href={params?.get("senior")==="1"?"/senior":"/student"}>← К моему маршруту</a></header><section className="frame"><div className="spread"><Spread/></div></section><footer><a className="button" href={params?.get("senior")==="1"&&page===28?(seniorPageHrefWithParams(27,window.location.search)||"/senior"):page===28?"/book-next5?page=27&mode=student":`/book-next6?page=${page-1}&mode=student`}>← Предыдущий</a><span>{page} / {params?.get("senior")==="1"?45:38}</span><button onClick={()=>{
   const params=new URLSearchParams(location.search);
   const isSenior=params.get("senior")==="1";
   if(page===28&&isSenior){
     params.set("page","29");
     location.href=`/senior/unique?${params.toString()}`;
+    return;
+  }
+  if(page===30&&!isSenior){
+    location.href="/book-next7?page=31&mode=student";
     return;
   }
   setPage(p=>Math.min(30,p+1));
