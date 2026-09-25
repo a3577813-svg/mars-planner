@@ -44,29 +44,46 @@ export default function TutorSpreadReview(){
  const dragRef=useRef<{dx:number;dy:number;pointerId:number}|null>(null);
 
  useEffect(()=>{
-  const c=context();
-  const plannerPath=location.pathname.startsWith("/book")||location.pathname.startsWith("/senior/unique");
-  if(!plannerPath)return;
-  setMode(c.mode);setStudent(c.student);setPage(c.page);
-  setStatus((localStorage.getItem(key(c.student,c.page,"status"))||"") as ReviewStatus);
-  setComment(localStorage.getItem(key(c.student,c.page,"comment"))||"");
+  const sync=()=>{
+   const c=context();
+   const plannerPath=location.pathname.startsWith("/book")||location.pathname.startsWith("/senior/unique");
+   if(!plannerPath)return;
+   setMode(c.mode);setStudent(c.student);setPage(c.page);
+   setStatus((localStorage.getItem(key(c.student,c.page,"status"))||"") as ReviewStatus);
+   setComment(localStorage.getItem(key(c.student,c.page,"comment"))||"");
 
-  if(c.mode==="methodist"){
-   const studentId=new URLSearchParams(location.search).get("student")||"";
-   if(studentId){
-    fetch("/api/staff/student?student="+encodeURIComponent(studentId),{cache:"no-store"})
-     .then(r=>r.json())
-     .then(data=>{
-      if(data.ok&&Array.isArray(data.student?.comments)){
-       setMethodistComments(data.student.comments);
-      }
-     })
-     .finally(()=>setReady(true));
-    return;
+   if(c.mode==="methodist"){
+    const studentId=new URLSearchParams(location.search).get("student")||"";
+    if(studentId){
+     fetch("/api/staff/student?student="+encodeURIComponent(studentId),{cache:"no-store"})
+      .then(r=>r.json())
+      .then(data=>{
+       if(data.ok&&Array.isArray(data.student?.comments)){
+        setMethodistComments(data.student.comments);
+       }
+      })
+      .finally(()=>setReady(true));
+     return;
+    }
    }
-  }
 
-  setReady(true);
+   setReady(true);
+  };
+
+  const originalReplaceState=history.replaceState;
+  history.replaceState=function(...args){
+   originalReplaceState.apply(history,args);
+   window.dispatchEvent(new Event("mars-page-change"));
+  };
+
+  sync();
+  window.addEventListener("popstate",sync);
+  window.addEventListener("mars-page-change",sync);
+  return()=>{
+   history.replaceState=originalReplaceState;
+   window.removeEventListener("popstate",sync);
+   window.removeEventListener("mars-page-change",sync);
+  };
  },[]);
 
  if(!ready)return null;
