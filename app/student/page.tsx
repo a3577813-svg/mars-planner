@@ -17,6 +17,7 @@ export default function StudentDashboard(){
  const[submitLoading,setSubmitLoading]=useState(false);
  const[submitError,setSubmitError]=useState("");
  const[tutorComment,setTutorComment]=useState("");
+ const[studentLabel,setStudentLabel]=useState("");
 
  useEffect(()=>{
    const refresh=()=>{
@@ -46,6 +47,8 @@ export default function StudentDashboard(){
      .then(async response=>{
        const data=await response.json();
        if(!response.ok||!data.ok)throw new Error(data.error||"Ошибка загрузки доступа");
+
+       setStudentLabel(data.displayName||data.studentId||"");
 
        const pages=Array.isArray(data.allowedPages)
          ?data.allowedPages.map(Number).filter((n:number)=>Number.isInteger(n)&&n>=1&&n<=38)
@@ -115,7 +118,7 @@ export default function StudentDashboard(){
      setSubmitLoading(false);
    }
  };
- return <main className="studentCabinet"><header><div className="brand"><img src="/mars-logo.svg" alt="МАРС"/><div><b>ПРОЕКТИРУЕМ БУДУЩЕЕ</b><span>Личный кабинет ученика</span></div></div><div className="identity"><strong>5–7 уровни</strong><Link href="/">Выйти</Link></div></header><section className="wrap"><div className="hero"><div><p className="eyebrow">ТВОЙ ЛИЧНЫЙ МАРШРУТ</p><h1>Продолжим проектное путешествие?</h1><p>Планёрка сохраняет твои идеи, решения и открытия на каждом этапе.</p>{hasAccess?<Link className="primary" href={hrefFor(current.n)}>Продолжить планёрку →</Link>:<span className="noAccess">Пока нет назначенных разворотов</span>}</div><div className="progress"><div className="ring" style={{background:`conic-gradient(#ff6547 ${Math.max(progress,3)}%,#ffffff2d 0)`}}><strong>{currentPage}</strong><span>из 38</span></div><b>Текущий разворот</b><small>{current.title}</small></div></div><div className="grid"><section className="routeCard"><div className="cardTitle"><div><p className="eyebrow">ПЛАНЁРКА</p><h2>Мой маршрут</h2></div><span>Доступно {visibleRoute.length} разворотов</span></div><div className="routeList">{visibleRoute.map(item=>{const status=item.n===currentPage?"current":item.n<currentPage?"done":"next";return <Link key={item.n} href={hrefFor(item.n)} className={status}><span className="num">{String(item.n).padStart(2,"0")}</span><div><b>{item.title}</b><small>{status==="current"?"Открыт сейчас":status==="done"?"Уже доступен":"Доступен"}</small></div><span className="arrow">→</span></Link>})}</div></section><aside><section className="panel accent"><p className="eyebrow">СЕЙЧАС В ФОКУСЕ</p><h3>Разворот {String(currentPage).padStart(2,"0")}</h3><p>{current.title}</p>{hasAccess&&<Link href={hrefFor(current.n)}>Открыть разворот</Link>}</section><section className="panel submitPanel">
+ return <main className="studentCabinet"><header><div className="brand"><img src="/mars-logo.svg" alt="МАРС"/><div><b>ПРОЕКТИРУЕМ БУДУЩЕЕ</b><span>Личный кабинет ученика</span></div></div><div className="identity"><strong>{studentLabel||"Ученик"} · 5–7 уровни</strong><Link href="/">Выйти</Link></div></header><section className="wrap"><div className="hero"><div><p className="eyebrow">ТВОЙ ЛИЧНЫЙ МАРШРУТ</p><h1>Продолжим проектное путешествие?</h1><p>Планёрка сохраняет твои идеи, решения и открытия на каждом этапе.</p>{hasAccess?<Link className="primary" href={hrefFor(current.n)}>Продолжить планёрку →</Link>:<span className="noAccess">Пока нет назначенных разворотов</span>}</div><div className="progress"><div className="ring" style={{background:`conic-gradient(#ff6547 ${Math.max(progress,3)}%,#ffffff2d 0)`}}><strong>{currentPage}</strong><span>из 38</span></div><b>Текущий разворот</b><small>{current.title}</small></div></div><div className="grid"><section className="routeCard"><div className="cardTitle"><div><p className="eyebrow">ПЛАНЁРКА</p><h2>Мой маршрут</h2></div><span>Доступно {visibleRoute.length} разворотов</span></div><div className="routeList">{visibleRoute.map(item=>{const status=item.n===currentPage?"current":item.n<currentPage?"done":"next";return <Link key={item.n} href={hrefFor(item.n)} className={status}><span className="num">{String(item.n).padStart(2,"0")}</span><div><b>{item.title}</b><small>{status==="current"?"Открыт сейчас":status==="done"?"Уже доступен":"Доступен"}</small></div><span className="arrow">→</span></Link>})}</div></section><aside><section className="panel accent"><p className="eyebrow">СЕЙЧАС В ФОКУСЕ</p><h3>Разворот {String(currentPage).padStart(2,"0")}</h3><p>{current.title}</p>{hasAccess&&<Link href={hrefFor(current.n)}>Открыть разворот</Link>}</section><section className="panel submitPanel">
   <p className="eyebrow">ЗАВЕРШЕНИЕ ПЛАНЁРКИ</p>
 
   {submission?.status==="generating"
