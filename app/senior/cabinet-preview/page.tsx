@@ -32,6 +32,7 @@ export default function CabinetPreview(){
  const[assignments,setAssignments]=useState<SpreadAssignment[]>([]);
  const[submission,setSubmission]=useState<Submission|null>(null);
  const[tutorComment,setTutorComment]=useState("");
+ const[studentLabel,setStudentLabel]=useState("");
  const[loading,setLoading]=useState(true); const[submitLoading,setSubmitLoading]=useState(false); const[submitError,setSubmitError]=useState("");
  useEffect(()=>{
   let active=true;
@@ -49,6 +50,10 @@ export default function CabinetPreview(){
     if(submit?.ok&&submit.submission)setSubmission(submit.submission);
     if(planner?.ok&&Array.isArray(planner.entries)){
      setEntries(planner.entries);
+    }
+
+    if(access?.ok){
+     setStudentLabel(access.displayName||access.studentId||"");
     }
 
     if(access?.ok&&Array.isArray(access.allowedPages)){
@@ -127,7 +132,7 @@ export default function CabinetPreview(){
   }catch(error:any){setSubmitError(error?.message||"Ошибка завершения планёрки");
   }finally{setSubmitLoading(false);}
  };
- return <CabinetShell roleLabel="Кабинет ученика" title="Мой маршрут" activeHref="/senior/cabinet-preview" gradeLabel="8–11 класс" brandHref="/senior/cabinet-preview" nav={seniorCabinetNav}>
+ return <CabinetShell roleLabel="Кабинет ученика" title="Мой маршрут" activeHref="/senior/cabinet-preview" gradeLabel="8–11 класс" brandHref="/senior/cabinet-preview" nav={seniorCabinetNav} studentName={studentLabel||undefined}>
   <div className="dashboard">
    <div className="topGrid">
     <section className="hero">

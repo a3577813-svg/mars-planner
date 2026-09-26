@@ -13,6 +13,7 @@ export default function SeniorPlanner(){
  const[entries,setEntries]=useState<PlannerEntry[]>([]);
  const[allowedPages,setAllowedPages]=useState<number[]>([]);
  const[assignments,setAssignments]=useState<SpreadAssignment[]>([]);
+ const[studentLabel,setStudentLabel]=useState("");
  const[loading,setLoading]=useState(true);
 
  useEffect(()=>{
@@ -24,6 +25,7 @@ export default function SeniorPlanner(){
   ]).then(([planner,access,spread])=>{
    if(!active)return;
    if(planner?.ok&&Array.isArray(planner.entries))setEntries(planner.entries);
+   if(access?.ok)setStudentLabel(access.displayName||access.studentId||"");
    if(access?.ok&&Array.isArray(access.allowedPages))setAllowedPages(access.allowedPages.map(Number).filter((n:number)=>Number.isInteger(n)&&n>=1&&n<=45));
    if(spread?.ok&&Array.isArray(spread.assignments))setAssignments(spread.assignments);
   }).catch(()=>{}).finally(()=>{if(active)setLoading(false);});
@@ -38,7 +40,7 @@ export default function SeniorPlanner(){
  const openItems=visibleItems.filter(item=>!isFutureAssignment(assignments.find(value=>value.page===item.n)));
  const currentItem=openItems.find(item=>pageStatuses[item.n]==="progress")||openItems.find(item=>pageStatuses[item.n]==="empty")||openItems[openItems.length-1]||null;
 
- return <CabinetShell roleLabel="Кабинет ученика" title="Моя планёрка" activeHref="/senior" gradeLabel="8–11 класс" brandHref="/senior/cabinet-preview" nav={seniorCabinetNav}>
+ return <CabinetShell roleLabel="Кабинет ученика" title="Моя планёрка" activeHref="/senior" gradeLabel="8–11 класс" brandHref="/senior/cabinet-preview" nav={seniorCabinetNav} studentName={studentLabel||"Ученик"}>
   <div className="plannerPage">
    <section className="plannerIntro">
     <div><span className="eyebrow">МОЙ МАРШРУТ</span><h1>Моя планёрка</h1><p>Все развороты твоего маршрута — от первых идей до итоговой рефлексии.</p></div>

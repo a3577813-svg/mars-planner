@@ -6,7 +6,7 @@ import type {ReactNode} from "react";
 export type CabinetNavItem={href:string;label:string;icon?:string;badge?:string};
 type Props={roleLabel:string;title:string;nav:CabinetNavItem[];activeHref?:string;children:ReactNode;action?:ReactNode;studentName?:string;gradeLabel?:string;brandHref?:string};
 
-export default function CabinetShell({nav,activeHref,children,studentName="Аня Иванова",gradeLabel="8–11 класс",brandHref="/"}:Props){
+export default function CabinetShell({nav,activeHref,children,studentName="Ученик",gradeLabel="8–11 класс",brandHref="/"}:Props){
  const firstName=studentName.split(" ")[0];
 
  const logout=async()=>{

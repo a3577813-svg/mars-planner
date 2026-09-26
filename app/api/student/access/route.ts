@@ -14,9 +14,10 @@ export async function GET(){
     }
 
     const result=await db.query(
-      `SELECT allowed_pages
-       FROM student_planner_access
-       WHERE student_id=$1
+      `SELECT spa.allowed_pages, u.display_name
+       FROM users u
+       LEFT JOIN student_planner_access spa ON spa.student_id=u.student_id
+       WHERE u.student_id=$1
        LIMIT 1`,
       [student.student_id]
     );
@@ -27,6 +28,7 @@ export async function GET(){
     return NextResponse.json({
       ok:true,
       studentId:student.student_id,
+      displayName:row?.display_name || null,
       plannerType:student.planner_type,
       allowedPages:row?.allowed_pages ?? Array.from(
         {length:maxPage},
