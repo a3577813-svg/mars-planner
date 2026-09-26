@@ -5,10 +5,11 @@ import type {PointerEvent as ReactPointerEvent} from "react";
 
 type ReviewStatus="great"|"revise"|"talk"|"";
 
-type MethodistComment={
+type SpreadReview={
+ status:ReviewStatus;
  comment:string;
- author:string;
- updatedAt:string|null;
+ author?:string;
+ updatedAt?:string|null;
 };
 
 const statusOptions:[ReviewStatus,string,string][]=[
@@ -23,21 +24,19 @@ function context(){
  const isSenior=params.get("senior")==="1"||location.pathname.startsWith("/senior/");
  const sourcePage=Number(params.get("page")||"1")||1;
  const page=Number(params.get("logicalPage")||sourcePage)||sourcePage;
- const student=isSenior?"student8":"student7";
- return{mode,isSenior,page,student};
+ const studentId=params.get("student")||"";
+ return{mode,isSenior,page,studentId};
 }
-
-function key(student:string,page:number,suffix:string){return`mars-tutor-review:${student}:p${page}:${suffix}`}
 
 export default function TutorSpreadReview(){
  const[ready,setReady]=useState(false);
  const[mode,setMode]=useState("student");
- const[student,setStudent]=useState("student7");
+ const[studentId,setStudentId]=useState("");
  const[page,setPage]=useState(1);
  const[status,setStatus]=useState<ReviewStatus>("");
  const[comment,setComment]=useState("");
  const[saved,setSaved]=useState(false);
- const[methodistComments,setMethodistComments]=useState<MethodistComment[]>([]);
+ const[spreadReviews,setSpreadReviews]=useState<SpreadReview[]>([]);
  const dockRef=useRef<HTMLElement|null>(null);
  const[position,setPosition]=useState<{x:number;y:number}|null>(null);
  const[collapsed,setCollapsed]=useState(false);
@@ -48,26 +47,27 @@ export default function TutorSpreadReview(){
    const c=context();
    const plannerPath=location.pathname.startsWith("/book")||location.pathname.startsWith("/senior/unique");
    if(!plannerPath)return;
-   setMode(c.mode);setStudent(c.student);setPage(c.page);
-   setStatus((localStorage.getItem(key(c.student,c.page,"status"))||"") as ReviewStatus);
-   setComment(localStorage.getItem(key(c.student,c.page,"comment"))||"");
+   setMode(c.mode);setStudentId(c.studentId);setPage(c.page);
+   const query=new URLSearchParams({page:String(c.page)});
+   if(c.studentId)query.set("student",c.studentId);
 
-   if(c.mode==="methodist"){
-    const studentId=new URLSearchParams(location.search).get("student")||"";
-    if(studentId){
-     fetch("/api/staff/student?student="+encodeURIComponent(studentId),{cache:"no-store"})
-      .then(r=>r.json())
-      .then(data=>{
-       if(data.ok&&Array.isArray(data.student?.comments)){
-        setMethodistComments(data.student.comments);
-       }
-      })
-      .finally(()=>setReady(true));
-     return;
-    }
-   }
-
-   setReady(true);
+   fetch("/api/tutor/spread-review?"+query.toString(),{cache:"no-store"})
+    .then(r=>r.json())
+    .then(data=>{
+     if(c.mode==="teacher"){
+      const review=data?.review;
+      setStatus((review?.status||"") as ReviewStatus);
+      setComment(review?.comment||"");
+      setSpreadReviews([]);
+     }else{
+      const reviews=Array.isArray(data?.reviews)?data.reviews:[];
+      setSpreadReviews(reviews);
+      const latest=reviews[0];
+      setStatus((latest?.status||"") as ReviewStatus);
+      setComment(latest?.comment||"");
+     }
+    })
+    .finally(()=>setReady(true));
   };
 
   const originalReplaceState=history.replaceState;
@@ -87,11 +87,15 @@ export default function TutorSpreadReview(){
  },[]);
 
  if(!ready)return null;
- const save=()=>{
-  if(status)localStorage.setItem(key(student,page,"status"),status);else localStorage.removeItem(key(student,page,"status"));
-  if(comment.trim())localStorage.setItem(key(student,page,"comment"),comment.trim());else localStorage.removeItem(key(student,page,"comment"));
-  localStorage.setItem(key(student,page,"updated"),new Date().toISOString());
-  window.dispatchEvent(new Event("storage"));
+ const save=async()=>{
+  if(!studentId)return;
+  const response=await fetch("/api/tutor/spread-review",{
+   method:"PUT",
+   headers:{"Content-Type":"application/json"},
+   body:JSON.stringify({student:studentId,page,status,comment})
+  });
+  const data=await response.json();
+  if(!response.ok||!data.ok)return;
   setSaved(true);window.setTimeout(()=>setSaved(false),1200);
  };
  const selected=statusOptions.find(item=>item[0]===status);
@@ -118,10 +122,10 @@ export default function TutorSpreadReview(){
  };
 
  if(mode==="methodist"){
-  if(!methodistComments.length)return null;
+  if(!spreadReviews.length)return null;
   return <aside className="studentTutorFeedback neutral">
    <p>КОММЕНТАРИИ ТЬЮТОРА</p>
-   {methodistComments.map((item,index)=><div key={index} style={{marginTop:index?14:0}}>
+   {spreadReviews.map((item,index)=><div key={index} style={{marginTop:index?14:0}}>
     <strong style={{display:"block",marginBottom:4,color:"#432172"}}>{item.author||"Тьютор"}</strong>
     <div style={{whiteSpace:"pre-wrap",lineHeight:1.5}}>{item.comment}</div>
    </div>)}
