@@ -50,17 +50,39 @@ export default function LoginRedirect(){
         return;
       }
 
- if(login==="teacher"||login==="methodist"){
- event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();
- try{
- const response=await fetch("/api/auth/staff-login",{method:"POST",credentials:"include",headers:{"Content-Type":"application/json"},body:JSON.stringify({login,password})});
- const data=await response.json();
- if(!response.ok||!data.ok){alert(data.error||"Неверный логин или пароль");return;}
- localStorage.setItem("mars-active-account",login);
- location.assign(data.role==="methodist"?"/methodist":"/teacher");
- }catch{alert("Не удалось связаться с сервером");}
- return;
- }
+      try{
+        const staffResponse=await fetch("/api/auth/staff-login",{
+          method:"POST",
+          credentials:"include",
+          headers:{"Content-Type":"application/json"},
+          body:JSON.stringify({login,password})
+        });
+
+        const staffData=await staffResponse.json();
+
+        if(staffResponse.ok&&staffData.ok){
+          event.preventDefault();
+          event.stopPropagation();
+          event.stopImmediatePropagation();
+          localStorage.setItem("mars-active-account",staffData.role);
+          location.assign(staffData.role==="methodist"?"/methodist":"/teacher");
+          return;
+        }
+
+        if(staffResponse.status!==401){
+          event.preventDefault();
+          event.stopPropagation();
+          event.stopImmediatePropagation();
+          alert(staffData.error||"Ошибка входа");
+          return;
+        }
+      }catch{
+        event.preventDefault();
+        event.stopPropagation();
+        event.stopImmediatePropagation();
+        alert("Не удалось связаться с сервером");
+        return;
+      }
       const legacy=legacyDashboard(login);
 
       if(legacy&&password==="1234"){
