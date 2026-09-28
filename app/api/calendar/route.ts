@@ -2,6 +2,8 @@ import {NextResponse} from "next/server";
 import {db} from "../../lib/db";
 import {getCurrentAdmin} from "../../lib/admin-session";
 
+export const dynamic="force-dynamic";
+
 type CalendarEventInput={
   title:string;
   start:string;
