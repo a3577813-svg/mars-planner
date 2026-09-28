@@ -139,6 +139,9 @@ export default function StudentDashboard(){
           Скачать итоговый PDF
         </a>
       }
+      <button onClick={submitPlanner} disabled={submitLoading}>
+        {submitLoading?"Обновляем…":"Обновить итоговый PDF"}
+      </button>
     </>
     :submission?.status==="error"
     ?<>
