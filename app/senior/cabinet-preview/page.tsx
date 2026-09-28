@@ -79,6 +79,30 @@ export default function CabinetPreview(){
 
   return()=>{active=false;};
  },[]);
+ useEffect(()=>{
+  if(!submission||submission.status!=="generating")return;
+
+  const timer=window.setInterval(async()=>{
+   try{
+    const response=await fetch("/api/planner/submit",{
+     credentials:"include",
+     cache:"no-store"
+    });
+    const data=await response.json();
+
+    if(response.ok&&data?.ok){
+     setSubmission(data.submission||null);
+
+     if(data.submission?.status!=="generating"){
+      window.clearInterval(timer);
+     }
+    }
+   }catch{}
+  },3000);
+
+  return()=>window.clearInterval(timer);
+ },[submission?.status]);
+
  const pageStatuses=useMemo(()=>getSeniorPageStatuses(entries),[entries]);
  const visibleItems=useMemo(()=>{
   return seniorItems.filter(item=>{
