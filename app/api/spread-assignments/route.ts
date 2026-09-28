@@ -67,6 +67,22 @@ export async function PUT(request:NextRequest){
   try{
     await client.query("BEGIN");
 
+    const previousResult=await client.query(
+      `SELECT page_number,visible
+       FROM spread_assignments
+       WHERE audience=$1`,
+      [audience]
+    );
+
+    const previousVisibility=new Map<number,boolean>(
+      previousResult.rows.map(row=>[
+        Number(row.page_number),
+        row.visible!==false
+      ])
+    );
+
+    const newlyOpenedPages:number[]=[];
+
     await client.query(
       `DELETE FROM spread_assignments
        WHERE audience=$1`,
@@ -80,6 +96,8 @@ export async function PUT(request:NextRequest){
         continue;
       }
 
+      const visible=item.visible!==false;
+
       await client.query(
         `INSERT INTO spread_assignments
          (audience,page_number,week,start_date,end_date,visible,updated_at)
@@ -90,8 +108,37 @@ export async function PUT(request:NextRequest){
           typeof item.week==="string" ? item.week : "",
           item.start||null,
           item.end||null,
-          item.visible!==false
+          visible
         ]
+      );
+
+      if(visible&&previousVisibility.get(page)!==true){
+        newlyOpenedPages.push(page);
+      }
+    }
+
+    const maxPage=audience==="senior"?45:38;
+
+    for(const page of newlyOpenedPages){
+      if(page>maxPage)continue;
+
+      await client.query(
+        `INSERT INTO student_planner_access
+         (student_id,allowed_pages,updated_at)
+         SELECT student_id,ARRAY[$2]::integer[],NOW()
+         FROM users
+         WHERE planner_type=$1
+           AND is_active=TRUE
+         ON CONFLICT (student_id)
+         DO UPDATE SET
+           allowed_pages=
+             CASE
+               WHEN $2=ANY(student_planner_access.allowed_pages)
+                 THEN student_planner_access.allowed_pages
+               ELSE array_append(student_planner_access.allowed_pages,$2)
+             END,
+           updated_at=NOW()`,
+        [audience,page]
       );
     }
 
