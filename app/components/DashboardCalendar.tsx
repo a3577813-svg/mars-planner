@@ -4,7 +4,7 @@ import {useEffect,useMemo,useState} from "react";
 
 type EventItem={title:string;start:string;end?:string;icon:string};
 
-const events:EventItem[]=[
+const defaultEvents:EventItem[]=[
  {title:"Праздник",start:"2026-09-01",icon:"🎉"},{title:"Запускной интенсив",start:"2026-09-02",end:"2026-09-08",icon:"🚀"},{title:"Биосмена",start:"2026-09-09",end:"2026-09-20",icon:"🌿"},{title:"Академический трек",start:"2026-09-09",end:"2026-10-02",icon:"📚"},
  {title:"МАРСФЕСТ",start:"2026-10-05",end:"2026-10-09",icon:"🎭"},{title:"Каникулы",start:"2026-10-12",end:"2026-10-16",icon:"🍂"},{title:"Встреча команд: рефлексия МАРСФЕСТа",start:"2026-10-14",icon:"👥"},{title:"Родительское собрание 9 и 11 уровней",start:"2026-10-15",icon:"👨‍👩‍👧"},{title:"Академический трек",start:"2026-10-19",end:"2026-10-30",icon:"📚"},
  {title:"Академический трек",start:"2026-11-02",end:"2026-11-20",icon:"📚"},{title:"День Карьеры",start:"2026-11-05",end:"2026-11-06",icon:"🎓"},{title:"Родительский День Партнера",start:"2026-11-18",end:"2026-11-20",icon:"🤝"},{title:"Каникулы",start:"2026-11-23",end:"2026-11-27",icon:"🍂"},{title:"День Партнера с предпринимателями",start:"2026-11-27",icon:"🤝"},{title:"Академический трек",start:"2026-11-30",end:"2026-12-23",icon:"📚"},
@@ -24,7 +24,7 @@ const monthTitle=(key:string)=>parse(`${key}-01`).toLocaleDateString("ru-RU",{mo
 const dayDiff=(from:Date,to:Date)=>Math.max(0,Math.ceil((to.getTime()-from.getTime())/86400000));
 const plural=(n:number)=>{const a=n%100,b=n%10;return a>10&&a<20?"дней":b===1?"день":b>1&&b<5?"дня":"дней"};
 
-function summary(today:Date){
+function summary(today:Date,events:EventItem[]){
  const active=events.filter(item=>parse(item.start)<=today&&parse(item.end||item.start)>=today);
  const next=events.find(item=>parse(item.start)>today);
  return {active,next};
@@ -32,7 +32,19 @@ function summary(today:Date){
 
 export default function DashboardCalendar(){
  const[open,setOpen]=useState(false);
- const groups=useMemo(()=>Array.from(new Set(events.map(e=>monthKey(e.start)))).map(key=>({key,items:events.filter(e=>monthKey(e.start)===key)})),[]);
+ const[events,setEvents]=useState<EventItem[]>(defaultEvents);
+ const groups=useMemo(()=>Array.from(new Set(events.map(e=>monthKey(e.start)))).map(key=>({key,items:events.filter(e=>monthKey(e.start)===key)})),[events]);
+
+ useEffect(()=>{
+  fetch("/api/calendar",{credentials:"include",cache:"no-store"})
+   .then(r=>r.json())
+   .then(data=>{
+    if(data?.ok&&Array.isArray(data.events)&&data.events.length){
+     setEvents(data.events);
+    }
+   })
+   .catch(()=>{});
+ },[]);
 
  useEffect(()=>{
   let cancelled=false;
@@ -49,7 +61,7 @@ export default function DashboardCalendar(){
    if(!panel){panel=document.createElement("section");panel.className="panel marsCalendarPanel";}
    {
     const now=new Date(),today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
-    const {active,next}=summary(today);
+    const {active,next}=summary(today,events);
     const current=active[0];
     const untilNext=next?dayDiff(today,parse(next.start)):0;
     panel.innerHTML=`<p>КАЛЕНДАРЬ СОБЫТИЙ</p><h3>Что происходит сейчас</h3><div class="marsCalendarSummary">${current?`<article class="isCurrent"><span class="marsEventBadge">Сейчас</span><div class="marsEventRow"><i>${current.icon}</i><div><b>${current.title}</b><small>${fmt(current)}</small></div></div></article>`:`<article class="isQuiet"><span class="marsEventBadge">Сейчас</span><p>Между событиями — можно спокойно продолжить работу в планёрке.</p></article>`}${next?`<article class="isNext"><span class="marsEventBadge">Следующее</span><div class="marsEventRow"><i>${next.icon}</i><div><b>${next.title}</b><small>${fmt(next)} · через ${untilNext} ${plural(untilNext)}</small></div></div></article>`:""}</div><button type="button" class="marsOpenCalendar">Открыть календарь года</button>`;
@@ -62,7 +74,7 @@ export default function DashboardCalendar(){
   const esc=(e:KeyboardEvent)=>{if(e.key==="Escape")setOpen(false)};
   window.addEventListener("keydown",esc);
   return()=>{cancelled=true;window.removeEventListener("keydown",esc)};
- },[]);
+ },[events]);
 
  return <>
   {open&&<div className="marsCalendarModal" role="dialog" aria-modal="true" aria-label="Календарь МАРС"><div className="marsCalendarSheet"><header><div><span>2026–2027</span><h2>Календарь МАРС</h2></div><button type="button" onClick={()=>setOpen(false)}>×</button></header><div className="marsCalendarMonths">{groups.map(group=><section key={group.key}><h3>{monthTitle(group.key)}</h3><div>{group.items.map((item,i)=><article key={`${item.start}-${i}`}><span>{item.icon}</span><div><b>{item.title}</b><small>{fmt(item)}</small></div></article>)}</div></section>)}</div><footer><p><b>Регулярно:</b> тьюториал — август, январь и июнь; ВР — октябрь–ноябрь и февраль–март; ИР — декабрь и апрель/май; ВСОШ — сентябрь–ноябрь; пробники — по графику Статграда.</p></footer></div></div>}
