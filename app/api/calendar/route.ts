@@ -12,7 +12,7 @@ type CalendarEventInput={
 export async function GET(){
   try{
     const result=await db.query(
-      `SELECT id,title,start_date,end_date,icon,sort_order
+      `SELECT id,title,start_date::text AS start_date,end_date::text AS end_date,icon,sort_order
        FROM calendar_events
        WHERE is_active=TRUE
        ORDER BY start_date,sort_order,id`
@@ -23,8 +23,8 @@ export async function GET(){
       events:result.rows.map(row=>({
         id:String(row.id),
         title:row.title,
-        start:String(row.start_date).slice(0,10),
-        end:row.end_date?String(row.end_date).slice(0,10):undefined,
+        start:row.start_date,
+        end:row.end_date||undefined,
         icon:row.icon||"📅"
       }))
     });
