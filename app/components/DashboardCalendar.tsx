@@ -62,9 +62,11 @@ export default function DashboardCalendar(){
    {
     const now=new Date(),today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
     const {active,next}=summary(today,events);
-    const current=active[0];
     const untilNext=next?dayDiff(today,parse(next.start)):0;
-    panel.innerHTML=`<p>КАЛЕНДАРЬ СОБЫТИЙ</p><h3>Что происходит сейчас</h3><div class="marsCalendarSummary">${current?`<article class="isCurrent"><span class="marsEventBadge">Сейчас</span><div class="marsEventRow"><i>${current.icon}</i><div><b>${current.title}</b><small>${fmt(current)}</small></div></div></article>`:`<article class="isQuiet"><span class="marsEventBadge">Сейчас</span><p>Между событиями — можно спокойно продолжить работу в планёрке.</p></article>`}${next?`<article class="isNext"><span class="marsEventBadge">Следующее</span><div class="marsEventRow"><i>${next.icon}</i><div><b>${next.title}</b><small>${fmt(next)} · через ${untilNext} ${plural(untilNext)}</small></div></div></article>`:""}</div><button type="button" class="marsOpenCalendar">Открыть календарь года</button>`;
+    const currentHtml=active.length
+     ?active.map(item=>`<article class="isCurrent"><span class="marsEventBadge">Сейчас</span><div class="marsEventRow"><i>${item.icon}</i><div><b>${item.title}</b><small>${fmt(item)}</small></div></div></article>`).join("")
+     :`<article class="isQuiet"><span class="marsEventBadge">Сейчас</span><p>Между событиями — можно спокойно продолжить работу в планёрке.</p></article>`;
+    panel.innerHTML=`<p>КАЛЕНДАРЬ СОБЫТИЙ</p><h3>Что происходит сейчас</h3><div class="marsCalendarSummary">${currentHtml}${next?`<article class="isNext"><span class="marsEventBadge">Следующее</span><div class="marsEventRow"><i>${next.icon}</i><div><b>${next.title}</b><small>${fmt(next)} · через ${untilNext} ${plural(untilNext)}</small></div></div></article>`:""}</div><button type="button" class="marsOpenCalendar">Открыть календарь года</button>`;
    }
    if(!isSeniorCabinet&&host.firstElementChild!==panel)host.prepend(panel);
    root.querySelectorAll<HTMLElement>(".marsOpenCalendar,.marsLiveStrip button").forEach(button=>{button.onclick=()=>setOpen(true)});
