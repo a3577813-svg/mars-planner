@@ -22,6 +22,38 @@ export default function LoginRedirect(){
       const login=loginInput?.value.trim()||"";
       const password=passwordInput?.value||"";
 
+      const studentId=/^ID\d+$/i.test(login)?login.toUpperCase():"";
+
+      if(studentId){
+        event.preventDefault();
+        event.stopPropagation();
+        event.stopImmediatePropagation();
+
+        try{
+          const response=await fetch("/api/auth/login",{
+            method:"POST",
+            credentials:"include",
+            headers:{"Content-Type":"application/json"},
+            body:JSON.stringify({studentId,password})
+          });
+
+          const data=await response.json();
+
+          if(!response.ok||!data.ok){
+            alert(data.error||"Неверный ID или пароль");
+            return;
+          }
+
+          const role=data.plannerType==="senior"?"student8":"student7";
+          localStorage.setItem("mars-active-account",role);
+          localStorage.setItem("mars-student-id",data.studentId);
+          location.assign(data.plannerType==="senior"?"/senior/cabinet-preview":"/student");
+        }catch{
+          alert("Не удалось связаться с сервером");
+        }
+        return;
+      }
+
       if(login==="admin"){
         event.preventDefault();
         event.stopPropagation();
